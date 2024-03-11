@@ -14,6 +14,19 @@ import org.springframework.stereotype.Component;
 public class UserServiceImpl implements UserService {
     @Override
     public User findById(int id) {
+        if (id == 300) {
+            throw new RuntimeException("产生异常了--------");
+        }
         return new User(id, "Lht" + System.currentTimeMillis());
+    }
+
+    @Override
+    public int getId(int id) {
+        return id;
+    }
+
+    @Override
+    public String getName(int id) {
+        return "leo111";
     }
 }

@@ -1,6 +1,5 @@
 package com.lht.lhtrpc.demo.api;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,15 +7,16 @@ import lombok.ToString;
 
 /**
  * @author Leo
- * @date 2024/03/07
+ * @date 2024/03/11
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class User {
+public class Order {
 
-    private Integer id;
-    private String name;
+    private int id;
+    private double amount;
+
 
 }
