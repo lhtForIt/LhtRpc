@@ -22,6 +22,7 @@
         <module>lhtrpc-core</module>
         <module>lhtrpc-demo-api</module>
         <module>lhtrpc-demo-provider</module>
+        <module>lhtrpc-demo-consumer</module>
     </modules>
 
     <build>
