@@ -58,11 +58,8 @@ public class ProviderBootStrap implements ApplicationContextAware {
             Object result = method.invoke(bean, newArgs);
             rpcResponse.setStatus(true);
             rpcResponse.setData(result);
-            rpcResponse.setEx(null);
         } catch (InvocationTargetException e) {
             e.printStackTrace();
-            rpcResponse.setStatus(false);
-            rpcResponse.setData(null);
             rpcResponse.setEx(new RuntimeException(e.getTargetException().getMessage()));
         } catch (IllegalAccessException e) {
             e.printStackTrace();

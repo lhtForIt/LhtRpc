@@ -10,6 +10,9 @@ import java.lang.reflect.Method;
  */
 public class MethodUtils {
 
+    /**
+     * 加上count是为了tt(String name, Class<?>... parameterTypes)这种边长的参数确定参数有多少
+     */
     public static String buildMethodSign(Method method, Class<?> service) {
         StringBuilder sb = new StringBuilder(service.getCanonicalName() + "@");
         sb.append(method.getName() + "@");
@@ -23,6 +26,7 @@ public class MethodUtils {
 
 
     public static Object convertType(Object requestType, String returnType) throws ClassNotFoundException {
+        if (returnType == null) return null;
         if (!requestType.getClass().getCanonicalName().equals(returnType)) {
             if (returnType.equals("java.lang.String")) {
                 return requestType.toString();
