@@ -52,6 +52,12 @@ public class LhtrpcDemoConsumerApplication {
 			String s = userService.getName(11);
 			System.out.println("return userService.getName(11)=" + s);
 
+			long l = userService.getId(13L);
+			System.out.println("return userService.getId(13L)=" + l);
+
+			int userId = userService.getId(new User(22, "leo"));
+			System.out.println("return userService.getId(new User(22, \"leo\"))=" + userId);
+
 
 
 		};

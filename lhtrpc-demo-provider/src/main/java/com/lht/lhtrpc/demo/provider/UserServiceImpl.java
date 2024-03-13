@@ -29,4 +29,19 @@ public class UserServiceImpl implements UserService {
     public String getName(int id) {
         return "leo111";
     }
+
+    @Override
+    public String getName(float f) {
+        return "leo111f";
+    }
+
+    @Override
+    public long getId(long id) {
+        return id;
+    }
+
+    @Override
+    public int getId(User user) {
+        return user.getId();
+    }
 }

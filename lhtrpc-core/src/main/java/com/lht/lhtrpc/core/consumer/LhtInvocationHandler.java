@@ -2,13 +2,16 @@ package com.lht.lhtrpc.core.consumer;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.lht.lhtrpc.core.api.RpcRequest;
 import com.lht.lhtrpc.core.api.RpcResponse;
+import com.lht.lhtrpc.core.utils.MethodUtils;
 import okhttp3.*;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -33,7 +36,8 @@ public class LhtInvocationHandler implements InvocationHandler {
         }
         RpcRequest rpcRequest = new RpcRequest();
         rpcRequest.setService(service.getCanonicalName());
-        rpcRequest.setMethod(method.getName());
+//        rpcRequest.setMethod(method);
+        rpcRequest.setMethodSign(MethodUtils.buildMethodSign(method, service));
         rpcRequest.setArgs(args);
 
         RpcResponse rpcResponse = post(rpcRequest);
@@ -46,7 +50,7 @@ public class LhtInvocationHandler implements InvocationHandler {
                 Object javaObject = rpcResponseData.toJavaObject(method.getReturnType());
                 return javaObject;
             } else {
-                return data;
+                return MethodUtils.convertType(data, method.getReturnType().getCanonicalName());
             }
         } else {
             //异常不能直接返回，会类转换失败，直接抛出去就好，抛的时候可以控制，是所有堆栈信息都返回去，还是只返回主要信息，这里只返回主要信息
@@ -54,15 +58,50 @@ public class LhtInvocationHandler implements InvocationHandler {
         }
     }
 
+
+
+    public static void main(String[] args) throws NoSuchMethodException {
+        System.out.println(MethodUtils.buildMethodSign(Temp.class.getMethod("getId",new Class[]{long.class}),Temp.class));
+        System.out.println(MethodUtils.buildMethodSign(Temp.class.getMethod("getId",new Class[]{P.class}),Temp.class));
+        System.out.println(MethodUtils.buildMethodSign(Temp.class.getMethod("tt", new Class[]{int.class, String.class}),Temp.class));
+        System.out.println(MethodUtils.buildMethodSign(Temp.class.getMethod("tt", new Class[]{String.class, int.class}),Temp.class));
+    }
+
+    class Temp{
+        public long getId(long id){
+            return id;
+        }
+
+        public int getId(P p) {
+            return p.id;
+        }
+
+        public int tt(int a, String b) {
+            return 1;
+        }
+
+        public int tt(String b, int a) {
+            return 1;
+        }
+
+
+    }
+
+    class P{
+        int id;
+        String name;
+    }
+
     OkHttpClient client = new OkHttpClient.Builder()
             .connectionPool(new ConnectionPool(16,60,TimeUnit.SECONDS))
-            .readTimeout(3, TimeUnit.SECONDS)
-            .writeTimeout(3,TimeUnit.SECONDS)
-            .connectTimeout(3,TimeUnit.SECONDS)
+            .readTimeout(300, TimeUnit.SECONDS)
+            .writeTimeout(300,TimeUnit.SECONDS)
+            .connectTimeout(300,TimeUnit.SECONDS)
             .build();
 
     private RpcResponse post(RpcRequest rpcRequest) {
 
+//        String requestJson = JSON.toJSONString(rpcRequest, SerializerFeature.IgnoreNonFieldGetter);
         String requestJson = JSON.toJSONString(rpcRequest);
         System.out.println("requestJson = " + requestJson);
         Request request = new Request.Builder()
