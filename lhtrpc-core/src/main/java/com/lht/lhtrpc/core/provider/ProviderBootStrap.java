@@ -1,20 +1,24 @@
 package com.lht.lhtrpc.core.provider;
 
-import com.alibaba.fastjson.JSON;
 import com.lht.lhtrpc.core.annotation.LhtProvider;
 import com.lht.lhtrpc.core.api.RpcRequest;
 import com.lht.lhtrpc.core.api.RpcResponse;
+import com.lht.lhtrpc.core.meta.ProviderMeta;
 import com.lht.lhtrpc.core.utils.MethodUtils;
 import jakarta.annotation.PostConstruct;
 import lombok.Data;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.*;
 
 /**
  * @author Leo
@@ -25,36 +29,37 @@ public class ProviderBootStrap implements ApplicationContextAware {
 
     private ApplicationContext applicationContext;
 
-    private Map<String, Object> skeleton = new HashMap<>();
+    //多值map，value其实是ProviderMeta的list
+    private MultiValueMap<String, ProviderMeta> skeleton = new LinkedMultiValueMap<>();
 
     private Map<String, Method> methodSignMap = new HashMap<>();
 
     @PostConstruct
-    public void buildProviders() {
+    public void start() {
         Map<String, Object> providers = applicationContext.getBeansWithAnnotation(LhtProvider.class);
-        providers.values().forEach(d->getInterface(d));
+        providers.values().forEach(d -> getInterface(d));
     }
 
     public RpcResponse invokeRequest(RpcRequest request) {
-        String methodName = request.getMethodSign().split("@")[0];
-//        if (methodName.equals("toString") || methodName.equals("hashCode")) {
-//            return null;
-//        }
         System.out.println("service值为：" + request.getService());
-        Object bean = skeleton.get(request.getService());
+        List<ProviderMeta> providerMetas = skeleton.get(request.getService());
         RpcResponse rpcResponse = new RpcResponse();
         try {
-            Method method = findMethod(request, bean);
-            if (Object.class.equals(method.getDeclaringClass())) {
-                rpcResponse.setEx(new RuntimeException("Object method is not support!!"));
+            ProviderMeta providerMeta = findProviderMeta(request, providerMetas);
+            if (providerMeta == null) {
+                rpcResponse.setEx(new RuntimeException("没有找到对应的服务"));
                 return rpcResponse;
             }
+            Method method = providerMeta.getMethod();
+            Object bean = providerMeta.getServiceImpl();
             //args是一个object数组，它在进行序列化的时候可能会丢失类型，反序列化会转为最适合的类型，比如是13L这种long型会转成int型，这时候需要转换一下
-            String[] s = request.getMethodSign().split("_");
-            Object[] newArgs = new Object[request.getArgs().length];
-            for (int i = 0; i < request.getArgs().length; i++) {
-                newArgs[i] = MethodUtils.convertType(request.getArgs()[i], s[i + 1]);
-            }
+            // 参数里map有引用类型，如果不转就会返回Null，但是list的引用类型就不会，不知道为啥？看来map还必须要转一下
+            // (debug看了下，我map是一个map<Integer,User>，
+            // 序列化的时候会自动转成string，如果这个时候不转，那么就会报错，因为map.get("1")一定拿不到东西，但是map的类型转了key就变成integer了
+            // 这时候就没问题了。如果你是string就没有问题，因为key本来就是string,也不用你转，感觉还是挺坑的啊)
+            // 你返回的不是order就不需要转，因为linkedHashMap不会出现转换问题
+            // 只要你在整个方法实现里面没有任何和实体类型相关的操作，你map不转不会有任何问题，比如你直接返回传入的map，那么你转不转都没一点问题(相当于有个炸弹，只要你不点燃就不会爆炸)
+            Object[] newArgs = processArgs(request.getArgs(), method);
             Object result = method.invoke(bean, newArgs);
             rpcResponse.setStatus(true);
             rpcResponse.setData(result);
@@ -64,64 +69,55 @@ public class ProviderBootStrap implements ApplicationContextAware {
         } catch (IllegalAccessException e) {
             e.printStackTrace();
             rpcResponse.setEx(new RuntimeException(e.getMessage()));
-        } catch (NoSuchFieldException e) {
-            e.printStackTrace();
-            rpcResponse.setEx(new RuntimeException(e.getMessage()));
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-            rpcResponse.setEx(new RuntimeException(e.getMessage()));
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            rpcResponse.setEx(new RuntimeException(e.getMessage()));
         }
         return rpcResponse;
     }
 
-
-
-    /**
-     * 这个有多种实现：
-     * 一个是直接用方法名和参数类型找，但是注意基础类型有自动装箱拆箱的问题，需要特殊处理(参数如果传空处理不了)
-     * 另一个就是遍历所有方法找到同名的方法
-     *
-     * tips:
-     * 这里如果传的是method名这个string的话，用args去判断类型就会有问题，因为args可能传Null的，但是这里方法却判断不出来。
-     * 可以构建方法签名(接口名+方法名+间隔符+参数个数+参数类型_参数类型)传到服务端，然后服务端在解析这个方法签名找到方法。
-     *
-     * 其实有一个更高效的方法，方法签名我们可以认为是对方法的一次编码，服务端在初始化的时候对每个方法也进行编码，每次只要对比两个字符串是否相等即可。
-     * 如果字符串较长，比对效率不高，可以进行再一次编码，转成数字(前提是你的hash函数设计的比较好，碰撞概率较低)，这样比对会快很多。
-     *
-     */
-    private Method findMethod(RpcRequest request, Object bean) throws NoSuchFieldException, IllegalAccessException, NoSuchMethodException {
-        //法一 利用封装类里面的type字段判断是否是基本类型
-//        Class[] types = new Class[request.getArgs().length];
-//        for (int i = 0; i < request.getArgs().length; i++) {
-//            Class<?> aClass = request.getArgs()[i].getClass();
-//            Field type = aClass.getDeclaredField("TYPE");
-//            types[i] = type == null ? aClass : (Class) type.get(null);
-//        }
-//        Method method = bean.getClass().getDeclaredMethod(request.getMethod(), types);
-//        return method;
-        //法二
-//        for(Method m:bean.getClass().getDeclaredMethods()){//不包含父类方法
-//        for(Method m:bean.getClass().getMethods()){
-//            if (m.getName().equals(request.getMethodSign())) {
-//                return m;
-//            }
-//        }
-//        return null;
-
-
-        for (Method m : bean.getClass().getMethods()) {
-            String methodSign = MethodUtils.buildMethodSign(m,bean.getClass().getInterfaces()[0]);
-            Method method = methodSignMap.computeIfAbsent(methodSign, t -> m);
-            if (request.getMethodSign().equals(methodSign)) {
-                return method;
+    private Object[] processArgs(Object[] args, Method method) {
+        if (args == null || args.length == 0) {
+            return args;
+        }
+        Class<?>[] parameterTypes = method.getParameterTypes();
+        Object[] newArgs = new Object[args.length];
+        for (int i = 0; i < args.length; i++) {
+            if (Map.class.isAssignableFrom(parameterTypes[i])) {
+                Map map = new HashMap();
+                Type[] genericParameterTypes = method.getGenericParameterTypes();
+                if (genericParameterTypes[i] instanceof ParameterizedType parameterizedType) {
+                    Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
+                    Class<?> keyType = (Class<?>) actualTypeArguments[0];
+                    Class<?> valueType = (Class<?>) actualTypeArguments[1];
+                    ((Map) args[i]).entrySet().stream().forEach(e -> {
+                        Map.Entry entry = (Map.Entry) e;
+                        Object key = MethodUtils.convertType(entry.getKey(), keyType);
+                        Object value = MethodUtils.convertType(entry.getValue(), valueType);
+                        map.put(key, value);
+                    });
+                    newArgs[i] = map;
+                } else {
+                    newArgs[i] = args[i];
+                }
+            } else if (List.class.isAssignableFrom(parameterTypes[i])) {
+                List list = new ArrayList();
+                Type[] genericParameterTypes = method.getGenericParameterTypes();
+                if (genericParameterTypes[i] instanceof ParameterizedType parameterizedType) {
+                    Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
+                    Class<?> type = (Class<?>) actualTypeArguments[0];
+                    ((List) args[i]).stream().forEach(d -> list.add(MethodUtils.convertType(d, type)));
+                    newArgs[i] = list;
+                } else {
+                    newArgs[i] = args[i];
+                }
+            } else {
+                newArgs[i] = MethodUtils.convertType(args[i], parameterTypes[i]);
             }
         }
+        return newArgs;
+    }
 
-        return null;
-
+    private ProviderMeta findProviderMeta(RpcRequest request, List<ProviderMeta> providerMetas) {
+        Optional<ProviderMeta> meta = providerMetas.stream().filter(d -> d.getMethodSign().equals(request.getMethodSign())).findFirst();
+        return meta.orElse(null);
     }
 
 
@@ -129,9 +125,27 @@ public class ProviderBootStrap implements ApplicationContextAware {
      * 默认只支持一个接口
      */
     private void getInterface(Object d) {
-        Class<?> anInterface = d.getClass().getInterfaces()[0];
-        System.out.println("放入provider: " + anInterface.getCanonicalName() + ",对象为：" + d.getClass().getCanonicalName());
-        skeleton.put(anInterface.getCanonicalName(), d);
+        Arrays.stream(d.getClass().getInterfaces()).forEach(anInterface -> {
+            System.out.println("放入provider: " + anInterface.getCanonicalName() + ",对象为：" + d.getClass().getCanonicalName());
+            Method[] methods = d.getClass().getDeclaredMethods();
+            for (Method method : methods) {
+                //这里直接过滤掉Object类的本地方法，后面直接找不到对应方法签名的provider
+                if (Object.class.equals(method.getDeclaringClass())) {
+                    continue;
+                }
+                createProvider(anInterface, d, method);
+            }
+        });
+
+    }
+
+    private void createProvider(Class<?> anInterface, Object bean, Method m) {
+        ProviderMeta meta = new ProviderMeta();
+        meta.setMethod(m);
+        meta.setServiceImpl(bean);
+        meta.setMethodSign(MethodUtils.buildMethodSign(m));
+        System.out.println("创建provider: " + meta);
+        skeleton.add(anInterface.getCanonicalName(), meta);
     }
 
 

@@ -42,18 +42,17 @@ public class LhtrpcDemoProviderApplication {
             RpcRequest request = new RpcRequest();
             request.setService("com.lht.lhtrpc.demo.api.UserService");
 //            request.setMethod(UserService.class.getMethod("findById", int.class));
-            request.setMethodSign(MethodUtils.buildMethodSign(UserService.class.getMethod("findById", int.class), UserService.class));
+            request.setMethodSign("getName@1_int");
             request.setArgs(new Object[]{500});
 
             RpcResponse response = invoke(request);
             System.out.println("return: "+response.getData());
 
-            //模拟调用toString方法
             RpcRequest request1 = new RpcRequest();
             request1.setService("com.lht.lhtrpc.demo.api.UserService");
 //            request.setMethod(UserService.class.getMethod("findById", int.class));
-            request1.setMethodSign(MethodUtils.buildMethodSign(UserServiceImpl.class.getMethod("hashCode"), UserService.class));
-            request1.setArgs(new Object[]{500});
+            request1.setMethodSign("getName@1_float");
+            request1.setArgs(new Object[]{500F});
 
             RpcResponse response1 = invoke(request1);
             System.out.println("return: "+response1.getData());

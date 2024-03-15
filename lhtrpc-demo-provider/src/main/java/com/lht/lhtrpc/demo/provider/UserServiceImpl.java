@@ -5,6 +5,9 @@ import com.lht.lhtrpc.demo.api.User;
 import com.lht.lhtrpc.demo.api.UserService;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * @author Leo
  * @date 2024/03/07
@@ -43,5 +46,26 @@ public class UserServiceImpl implements UserService {
     @Override
     public int getId(User user) {
         return user.getId();
+    }
+
+    @Override
+    public long[] getIds() {
+        return new long[]{2L, 3L, 4};
+    }
+
+    @Override
+    public int[] getIds(int[] ids) {
+        return new int[]{1, 2, 3};
+    }
+
+    @Override
+    public Map<String, User> getMap(Map<String, User> map) {
+//        return Map.of("1", new User(1, "leo111"));
+        return map;
+    }
+
+    @Override
+    public List<User> getList(List<User> list) {
+        return list;
     }
 }
