@@ -41,7 +41,6 @@ public class LhtrpcDemoProviderApplication {
         return x->{
             RpcRequest request = new RpcRequest();
             request.setService("com.lht.lhtrpc.demo.api.UserService");
-//            request.setMethod(UserService.class.getMethod("findById", int.class));
             request.setMethodSign("getName@1_int");
             request.setArgs(new Object[]{500});
 
@@ -50,7 +49,6 @@ public class LhtrpcDemoProviderApplication {
 
             RpcRequest request1 = new RpcRequest();
             request1.setService("com.lht.lhtrpc.demo.api.UserService");
-//            request.setMethod(UserService.class.getMethod("findById", int.class));
             request1.setMethodSign("getName@1_float");
             request1.setArgs(new Object[]{500F});
 

@@ -1,5 +1,9 @@
 package com.lht.lhtrpc.core.consumer;
 
+import com.lht.lhtrpc.core.api.LoadBalancer;
+import com.lht.lhtrpc.core.api.Router;
+import com.lht.lhtrpc.core.cluster.RandomLoadBalancer;
+import com.lht.lhtrpc.core.cluster.RandomRibonLoadBalancer;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,6 +34,18 @@ public class ConsumerConfig {
             System.out.println("----consumerBootStrapRunner end----");
         };
     }
+
+
+    @Bean
+    public LoadBalancer loadBalancer() {
+        return new RandomRibonLoadBalancer();
+    }
+
+    @Bean
+    public Router router() {
+        return Router.Default;
+    }
+
 
 
 }
