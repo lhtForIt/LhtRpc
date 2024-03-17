@@ -2,10 +2,10 @@ package com.lht.lhtrpc.core.consumer;
 
 import com.lht.lhtrpc.core.annotation.LhtConsumer;
 import com.lht.lhtrpc.core.api.LoadBalancer;
+import com.lht.lhtrpc.core.api.RegistryCenter;
 import com.lht.lhtrpc.core.api.Router;
 import com.lht.lhtrpc.core.api.RpcContext;
 import lombok.Data;
-import org.apache.logging.log4j.util.Strings;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.EnvironmentAware;
@@ -46,14 +46,17 @@ public class ConsumerBootStrap implements ApplicationContextAware, EnvironmentAw
 
         LoadBalancer loadBalancer = applicationContext.getBean(LoadBalancer.class);
         Router router = applicationContext.getBean(Router.class);
+        RegistryCenter rc = applicationContext.getBean(RegistryCenter.class);
         RpcContext context = new RpcContext();
         context.setRouter(router);
         context.setLoadBalancer(loadBalancer);
-        String urls = environment.getProperty("lhtrpc.providers");
-        if (Strings.isEmpty(urls)) {
-            System.out.println("lhtrpc.providers is empty");
-        }
-        String[] providers = urls.split(",");
+
+
+//        String urls = environment.getProperty("lhtrpc.providers");
+//        if (Strings.isEmpty(urls)) {
+//            System.out.println("lhtrpc.providers is empty");
+//        }
+//        String[] providers = urls.split(",");
 
 
         String[] names = applicationContext.getBeanDefinitionNames();
@@ -64,7 +67,7 @@ public class ConsumerBootStrap implements ApplicationContextAware, EnvironmentAw
                 try {
                     Class<?> service = d.getType();
                     String serviceName = service.getCanonicalName();
-                    Object consumer = stub.computeIfAbsent(serviceName, x -> createConsumer(service, context, List.of(providers)));
+                    Object consumer = stub.computeIfAbsent(serviceName, x -> createFromRegistry(service, context, rc));
                     d.setAccessible(true);
                     d.set(bean, consumer);
                 } catch (Exception e) {
@@ -72,6 +75,12 @@ public class ConsumerBootStrap implements ApplicationContextAware, EnvironmentAw
                 }
             });
         }
+    }
+
+    private Object createFromRegistry(Class<?> service, RpcContext context, RegistryCenter rc) {
+        String serviceName = service.getCanonicalName();
+        List<String> providers = rc.fetchAll(serviceName);
+        return createConsumer(service, context, providers);
     }
 
     /**
