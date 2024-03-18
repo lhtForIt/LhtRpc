@@ -8,16 +8,16 @@ import java.util.List;
  */
 public interface RegistryCenter {
 
-    void start();
-    void stop();
+    void start(); // p/c
+    void stop(); // p/c
 
     //provider侧
-    void register(String service, String instance);
-    void unregister(String service, String instance);
+    void register(String service, String instance); // p
+    void unregister(String service, String instance); // p
 
     //consumer侧
-    List<String> fetchAll(String service);
-    //void subscribe();
+    List<String> fetchAll(String service); // c
+    //void subscribe(); // c
 
     class StaticRegistryCenter implements RegistryCenter {
 

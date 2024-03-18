@@ -5,6 +5,7 @@ import com.lht.lhtrpc.core.api.RegistryCenter;
 import com.lht.lhtrpc.core.api.Router;
 import com.lht.lhtrpc.core.cluster.RandomLoadBalancer;
 import com.lht.lhtrpc.core.cluster.RandomRibonLoadBalancer;
+import com.lht.lhtrpc.core.registry.ZkRegistryCenter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
@@ -56,7 +57,7 @@ public class ConsumerConfig {
 
     //注册中心自动启动和销毁通过initMethod和destroyMethod
     @Bean(initMethod = "start", destroyMethod = "stop")
-    public RegistryCenter registryCenter() {return new RegistryCenter.StaticRegistryCenter(List.of(service.split(",")));}
+    public RegistryCenter registryCenter() {return new ZkRegistryCenter();}
 
 
 }

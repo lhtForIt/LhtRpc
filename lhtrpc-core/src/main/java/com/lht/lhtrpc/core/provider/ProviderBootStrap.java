@@ -1,16 +1,18 @@
 package com.lht.lhtrpc.core.provider;
 
 import com.lht.lhtrpc.core.annotation.LhtProvider;
+import com.lht.lhtrpc.core.api.RegistryCenter;
 import com.lht.lhtrpc.core.api.RpcRequest;
 import com.lht.lhtrpc.core.api.RpcResponse;
 import com.lht.lhtrpc.core.meta.ProviderMeta;
 import com.lht.lhtrpc.core.utils.MethodUtils;
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.Data;
-import org.jetbrains.annotations.NotNull;
+import lombok.SneakyThrows;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -18,6 +20,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.net.InetAddress;
+import java.sql.SQLOutput;
 import java.util.*;
 
 /**
@@ -32,12 +36,43 @@ public class ProviderBootStrap implements ApplicationContextAware {
     //多值map，value其实是ProviderMeta的list
     private MultiValueMap<String, ProviderMeta> skeleton = new LinkedMultiValueMap<>();
 
-    private Map<String, Method> methodSignMap = new HashMap<>();
+    private String instance;
+
+    @Value("${server.port}")
+    private String port;
+
 
     @PostConstruct
-    public void start() {
+    public void init() {
         Map<String, Object> providers = applicationContext.getBeansWithAnnotation(LhtProvider.class);
+        providers.keySet().forEach(d-> System.out.println(d));
         providers.values().forEach(d -> getInterface(d));
+    }
+
+    /**
+     * spring容器在进行初始化的时候可能服务还不可用，只有等到所有bean都初始化完毕，才能进行服务注册
+     * 对服务进行延迟暴露
+     */
+    @SneakyThrows
+    public void start() {
+        String ip= InetAddress.getLocalHost().getHostAddress();
+        instance = ip + "_" + port;
+        skeleton.keySet().forEach(this::registerService);
+    }
+
+    @PreDestroy
+    public void stop() {
+        skeleton.keySet().forEach(this::unregisterService);
+    }
+
+    private void unregisterService(String service) {
+        RegistryCenter rc = applicationContext.getBean(RegistryCenter.class);
+        rc.unregister(service, instance);
+    }
+
+    private void registerService(String service) {
+        RegistryCenter rc = applicationContext.getBean(RegistryCenter.class);
+        rc.register(service, instance);
     }
 
     public RpcResponse invokeRequest(RpcRequest request) {
