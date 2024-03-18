@@ -1,9 +1,17 @@
 package com.lht.lhtrpc.core.consumer;
 
+import com.lht.lhtrpc.core.api.LoadBalancer;
+import com.lht.lhtrpc.core.api.RegistryCenter;
+import com.lht.lhtrpc.core.api.Router;
+import com.lht.lhtrpc.core.cluster.RandomLoadBalancer;
+import com.lht.lhtrpc.core.cluster.RandomRibonLoadBalancer;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+
+import java.util.List;
 
 /**
  * @author Leo
@@ -11,6 +19,9 @@ import org.springframework.core.annotation.Order;
  */
 @Configuration
 public class ConsumerConfig {
+
+    @Value("${lhtrpc.providers}")
+    private String service;
 
     @Bean
     public ConsumerBootStrap initConsumerBootStrap() {
@@ -30,6 +41,22 @@ public class ConsumerConfig {
             System.out.println("----consumerBootStrapRunner end----");
         };
     }
+
+
+    @Bean
+    public LoadBalancer loadBalancer() {
+        return new RandomRibonLoadBalancer();
+    }
+
+    @Bean
+    public Router router() {
+        return Router.Default;
+    }
+
+
+    //注册中心自动启动和销毁通过initMethod和destroyMethod
+    @Bean(initMethod = "start", destroyMethod = "stop")
+    public RegistryCenter registryCenter() {return new RegistryCenter.StaticRegistryCenter(List.of(service.split(",")));}
 
 
 }

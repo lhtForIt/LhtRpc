@@ -1,0 +1,23 @@
+GET http://localhost:8088/?id=99
+
+###
+POST http://localhost:8082/
+Content-Type: application/json
+
+{
+  "service": "com.lht.lhtrpc.demo.api.UserService",
+  "methodSign": "findById@1_int",
+  "args": [200]
+}
+
+###
+POST http://localhost:8081/
+Content-Type: application/json
+
+{
+  "service": "com.lht.lhtrpc.demo.api.UserService",
+  "methodSign": "findById@1_int",
+  "args": [200]
+}
+
+

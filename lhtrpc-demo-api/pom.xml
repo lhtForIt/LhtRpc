@@ -29,6 +29,10 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<goal>repackage</goal>
+					<skip>true</skip>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

@@ -1,11 +1,15 @@
 package com.lht.lhtrpc.core.consumer;
 
 import com.lht.lhtrpc.core.annotation.LhtConsumer;
+import com.lht.lhtrpc.core.api.LoadBalancer;
+import com.lht.lhtrpc.core.api.RegistryCenter;
+import com.lht.lhtrpc.core.api.Router;
+import com.lht.lhtrpc.core.api.RpcContext;
 import lombok.Data;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.stereotype.Component;
+import org.springframework.context.EnvironmentAware;
+import org.springframework.core.env.Environment;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Proxy;
@@ -13,19 +17,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 /**
  * @author Leo
  * @date 2024/03/10
  */
 @Data
-@Component
-public class ConsumerBootStrap implements ApplicationContextAware {
+public class ConsumerBootStrap implements ApplicationContextAware, EnvironmentAware {
 
 
-    @Autowired
     private ApplicationContext applicationContext;
+
+    private Environment environment;
 
     private Map<String, Object> stub = new HashMap<>();
 
@@ -41,6 +44,21 @@ public class ConsumerBootStrap implements ApplicationContextAware {
      */
     public void start() {
 
+        LoadBalancer loadBalancer = applicationContext.getBean(LoadBalancer.class);
+        Router router = applicationContext.getBean(Router.class);
+        RegistryCenter rc = applicationContext.getBean(RegistryCenter.class);
+        RpcContext context = new RpcContext();
+        context.setRouter(router);
+        context.setLoadBalancer(loadBalancer);
+
+
+//        String urls = environment.getProperty("lhtrpc.providers");
+//        if (Strings.isEmpty(urls)) {
+//            System.out.println("lhtrpc.providers is empty");
+//        }
+//        String[] providers = urls.split(",");
+
+
         String[] names = applicationContext.getBeanDefinitionNames();
         for (String beanName : names) {
             Object bean = applicationContext.getBean(beanName);
@@ -49,7 +67,7 @@ public class ConsumerBootStrap implements ApplicationContextAware {
                 try {
                     Class<?> service = d.getType();
                     String serviceName = service.getCanonicalName();
-                    Object consumer = stub.computeIfAbsent(serviceName, x -> createConsumer(service));
+                    Object consumer = stub.computeIfAbsent(serviceName, x -> createFromRegistry(service, context, rc));
                     d.setAccessible(true);
                     d.set(bean, consumer);
                 } catch (Exception e) {
@@ -57,6 +75,12 @@ public class ConsumerBootStrap implements ApplicationContextAware {
                 }
             });
         }
+    }
+
+    private Object createFromRegistry(Class<?> service, RpcContext context, RegistryCenter rc) {
+        String serviceName = service.getCanonicalName();
+        List<String> providers = rc.fetchAll(serviceName);
+        return createConsumer(service, context, providers);
     }
 
     /**
@@ -78,8 +102,8 @@ public class ConsumerBootStrap implements ApplicationContextAware {
         return res;
     }
 
-    private Object createConsumer(Class<?> service) {
-        return Proxy.newProxyInstance(service.getClassLoader(), new Class[]{service}, new LhtInvocationHandler(service));
+    private Object createConsumer(Class<?> service, RpcContext rpcContext, List<String> providers) {
+        return Proxy.newProxyInstance(service.getClassLoader(), new Class[]{service}, new LhtInvocationHandler(service, rpcContext, providers));
     }
 
 
