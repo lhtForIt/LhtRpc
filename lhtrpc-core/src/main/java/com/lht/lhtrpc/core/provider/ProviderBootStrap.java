@@ -10,9 +10,11 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.Data;
 import lombok.SneakyThrows;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -40,6 +42,9 @@ public class ProviderBootStrap implements ApplicationContextAware {
 
     @Value("${server.port}")
     private String port;
+
+//    @Autowired
+//    private RegistryCenter rc;
 
 
     @PostConstruct

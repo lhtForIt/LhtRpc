@@ -6,6 +6,8 @@ import com.lht.lhtrpc.core.registry.ZkRegistryCenter;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Scope;
 import org.springframework.core.annotation.Order;
 
 import java.util.List;
@@ -19,7 +21,7 @@ public class ProviderConfig {
 
 
     @Bean
-    public ProviderBootStrap initProviderBootStrap() {
+    public ProviderBootStrap providerBootStrap() {
         return new ProviderBootStrap();
     }
 

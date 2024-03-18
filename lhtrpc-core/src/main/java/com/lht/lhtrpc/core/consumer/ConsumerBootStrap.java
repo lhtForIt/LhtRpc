@@ -1,10 +1,8 @@
 package com.lht.lhtrpc.core.consumer;
 
 import com.lht.lhtrpc.core.annotation.LhtConsumer;
-import com.lht.lhtrpc.core.api.LoadBalancer;
-import com.lht.lhtrpc.core.api.RegistryCenter;
-import com.lht.lhtrpc.core.api.Router;
-import com.lht.lhtrpc.core.api.RpcContext;
+import com.lht.lhtrpc.core.api.*;
+import com.lht.lhtrpc.core.registry.Event;
 import lombok.Data;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -17,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author Leo
@@ -79,8 +78,19 @@ public class ConsumerBootStrap implements ApplicationContextAware, EnvironmentAw
 
     private Object createFromRegistry(Class<?> service, RpcContext context, RegistryCenter rc) {
         String serviceName = service.getCanonicalName();
-        List<String> providers = rc.fetchAll(serviceName);
+        List<String> providers = buildUrl4Zk(rc.fetchAll(serviceName));
+        rc.subscribe(serviceName, data -> {
+            providers.clear();
+            providers.addAll(buildUrl4Zk(data.getData()));
+        });
         return createConsumer(service, context, providers);
+    }
+
+    private List<String> buildUrl4Zk(List<String> zkNodes) {
+        List<String> urls = zkNodes.stream().map(d -> "http://" + d.replace('_', ':')).collect(Collectors.toList());
+        System.out.println("===> map to providers:");
+        urls.forEach(System.out::println);
+        return urls;
     }
 
     /**

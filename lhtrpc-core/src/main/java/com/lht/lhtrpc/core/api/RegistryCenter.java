@@ -17,7 +17,7 @@ public interface RegistryCenter {
 
     //consumer侧
     List<String> fetchAll(String service); // c
-    //void subscribe(); // c
+    void subscribe(String service,ChangedListener listener); // c
 
     class StaticRegistryCenter implements RegistryCenter {
 
@@ -50,6 +50,11 @@ public interface RegistryCenter {
         @Override
         public List<String> fetchAll(String service) {
             return providers;
+        }
+
+        @Override
+        public void subscribe(String service, ChangedListener listener) {
+
         }
     }
 
