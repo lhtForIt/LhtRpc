@@ -8,6 +8,7 @@ import com.lht.lhtrpc.core.meta.ProviderMeta;
 import com.lht.lhtrpc.core.utils.MethodUtils;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import jakarta.annotation.Resource;
 import lombok.Data;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +44,7 @@ public class ProviderBootStrap implements ApplicationContextAware {
     @Value("${server.port}")
     private String port;
 
-    @Autowired
+    @Resource(name = "registryCenterProvider")
     private RegistryCenter rc;
 
 
@@ -62,12 +63,14 @@ public class ProviderBootStrap implements ApplicationContextAware {
     public void start() {
         String ip= InetAddress.getLocalHost().getHostAddress();
         instance = ip + "_" + port;
+        rc.start();
         skeleton.keySet().forEach(this::registerService);
     }
 
     @PreDestroy
     public void stop() {
         skeleton.keySet().forEach(this::unregisterService);
+        rc.stop();
     }
 
     private void unregisterService(String service) {
