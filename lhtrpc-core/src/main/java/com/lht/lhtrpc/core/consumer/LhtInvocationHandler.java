@@ -1,36 +1,34 @@
 package com.lht.lhtrpc.core.consumer;
 
-import com.alibaba.fastjson.JSON;
-import com.lht.lhtrpc.core.api.*;
+import com.lht.lhtrpc.core.api.RpcContext;
+import com.lht.lhtrpc.core.api.RpcRequest;
+import com.lht.lhtrpc.core.api.RpcResponse;
 import com.lht.lhtrpc.core.utils.MethodUtils;
 import com.lht.lhtrpc.core.utils.TypeUtils;
-import okhttp3.*;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.springframework.util.CollectionUtils;
 
-import java.io.IOException;
-import java.lang.reflect.*;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.util.List;
 
 /**
+ * 消费端动态代理处理类
  * @author Leo
  * @date 2024/03/11
  */
 public class LhtInvocationHandler implements InvocationHandler {
 
-    private final static MediaType MEDIA_TYPE = MediaType.get("application/json; charset=utf-8");
 
     private Class<?> service;
     private List<String> providers;
 
     private RpcContext context;
+    private HttpInvoker httpInvoker;
 
-    public LhtInvocationHandler(Class<?> service, RpcContext context, List<String> providers) {
+    public LhtInvocationHandler(Class<?> service, RpcContext context, List<String> providers, HttpInvoker httpInvoker) {
         this.service = service;
         this.context = context;
         this.providers = providers;
+        this.httpInvoker = httpInvoker;
     }
 
     @Override
@@ -50,7 +48,7 @@ public class LhtInvocationHandler implements InvocationHandler {
         String url = (String) context.getLoadBalancer().choose(urls);
         System.out.println("loadBalancer.choose(urls) ==> " + url);
 
-        RpcResponse rpcResponse = post(rpcRequest, url);
+        RpcResponse rpcResponse = httpInvoker.post(rpcRequest, url);
         //这里如果不转，返回的其实是一个jsonObject对象，但是服务端调用返回的需要是具体的对象，所以需要进行转换(序列化和反序列化？)
         if (rpcResponse.isStatus()) {
             return TypeUtils.buildResponse(method, rpcResponse);
@@ -59,31 +57,4 @@ public class LhtInvocationHandler implements InvocationHandler {
             throw rpcResponse.getEx();
         }
     }
-
-    OkHttpClient client = new OkHttpClient.Builder()
-            .connectionPool(new ConnectionPool(16,60,TimeUnit.SECONDS))
-            .readTimeout(300, TimeUnit.SECONDS)
-            .writeTimeout(300,TimeUnit.SECONDS)
-            .connectTimeout(300,TimeUnit.SECONDS)
-            .build();
-
-    private RpcResponse post(RpcRequest rpcRequest,String url) {
-
-        String requestJson = JSON.toJSONString(rpcRequest);
-        System.out.println("requestJson = " + requestJson);
-        Request request = new Request.Builder()
-                .url(url)
-                .post(RequestBody.create(requestJson, MEDIA_TYPE))
-                .build();
-        try {
-            String responseJson = client.newCall(request).execute().body().string();
-            System.out.println("responseJson = " + responseJson);
-            RpcResponse rpcResponse = JSON.parseObject(responseJson, RpcResponse.class);
-            return rpcResponse;
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
-    }
-
 }
