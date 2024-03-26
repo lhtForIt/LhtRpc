@@ -146,7 +146,6 @@ public class TypeUtils {
         }
     }
 
-    @NotNull
     public static Object[] initMapKey(Object[] args) {
         if (args == null || args.length == 0) return args;
         Object[] newArg;

@@ -3,16 +3,14 @@ package com.lht.lhtrpc.core.consumer;
 import com.lht.lhtrpc.core.api.LoadBalancer;
 import com.lht.lhtrpc.core.api.RegistryCenter;
 import com.lht.lhtrpc.core.api.Router;
-import com.lht.lhtrpc.core.cluster.RandomLoadBalancer;
 import com.lht.lhtrpc.core.cluster.RandomRibonLoadBalancer;
+import com.lht.lhtrpc.core.consumer.http.OkHttpInvoker;
 import com.lht.lhtrpc.core.registry.ZkRegistryCenter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-
-import java.util.List;
 
 /**
  * @author Leo
@@ -53,6 +51,9 @@ public class ConsumerConfig {
     public Router router() {
         return Router.Default;
     }
+
+    @Bean
+    public HttpInvoker httpInvoker() {return new OkHttpInvoker();}
 
 
     //注册中心自动启动和销毁通过initMethod和destroyMethod
