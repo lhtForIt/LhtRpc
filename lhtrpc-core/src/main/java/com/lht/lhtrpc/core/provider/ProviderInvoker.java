@@ -18,23 +18,15 @@ import java.util.Optional;
  */
 public class ProviderInvoker {
 
-    private MultiValueMap<ServiceMeta, ProviderMeta> skeleton;
-    private ProviderBootStrap providerBootStrap;
+    private MultiValueMap<String, ProviderMeta> skeleton;
 
     public ProviderInvoker(ProviderBootStrap providerBootStrap) {
         this.skeleton = providerBootStrap.getSkeleton();
-        this.providerBootStrap = providerBootStrap;
     }
 
     public RpcResponse invokeRequest(RpcRequest request) {
         System.out.println("service值为：" + request.getService());
-        ServiceMeta serviceMeta = ServiceMeta.builder()
-                .app(providerBootStrap.getApp())
-                .namespace(providerBootStrap.getNamespace())
-                .env(providerBootStrap.getEnv())
-                .name(request.getService())
-                .build();
-        List<ProviderMeta> providerMetas = skeleton.get(serviceMeta);
+        List<ProviderMeta> providerMetas = skeleton.get(request.getService());
         RpcResponse rpcResponse = new RpcResponse();
         try {
             ProviderMeta providerMeta = findProviderMeta(request, providerMetas);

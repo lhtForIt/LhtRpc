@@ -1,6 +1,10 @@
 server:
   port: 8081
 
+lhtrpc:
+  zkServer: 192.168.3.100:2181
+  zkRoot: lhtrpc
+
 app:
   id: lht-app
   namespace: public

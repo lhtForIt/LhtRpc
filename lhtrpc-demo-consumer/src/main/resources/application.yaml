@@ -3,6 +3,8 @@ server:
 
 lhtrpc:
   providers: http://localhost:8081/,http://localhost:8082/,http://localhost:8083/
+  zkServer: 192.168.3.100:2181
+  zkRoot: lhtrpc
 
 app:
   id: lht-app

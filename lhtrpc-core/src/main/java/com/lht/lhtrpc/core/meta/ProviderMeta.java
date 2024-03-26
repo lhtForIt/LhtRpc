@@ -1,5 +1,6 @@
 package com.lht.lhtrpc.core.meta;
 
+import lombok.Builder;
 import lombok.Data;
 import lombok.ToString;
 
@@ -12,6 +13,7 @@ import java.lang.reflect.Method;
  * @date 2024/03/13
  */
 @Data
+@Builder
 public class ProviderMeta {
 
     private Method method;

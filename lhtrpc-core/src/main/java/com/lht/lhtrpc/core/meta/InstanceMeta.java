@@ -1,7 +1,9 @@
 package com.lht.lhtrpc.core.meta;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Map;
 
@@ -12,6 +14,8 @@ import java.util.Map;
  * @date 2024/03/26
  */
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class InstanceMeta {
 
     private String scheme;

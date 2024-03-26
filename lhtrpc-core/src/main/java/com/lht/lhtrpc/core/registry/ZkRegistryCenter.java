@@ -11,7 +11,7 @@ import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.cache.TreeCache;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.zookeeper.CreateMode;
-import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,18 +22,24 @@ import java.util.stream.Collectors;
  */
 public class ZkRegistryCenter implements RegistryCenter {
 
+    @Value("${lhtrpc.zkServer}")
+    private String servers;
+
+    @Value("${lhtrpc.zkRoot}")
+    private String root;
+
     private CuratorFramework client;
 
     @Override
     public void start() {
         RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
         client = CuratorFrameworkFactory.builder()
-                .connectString("192.168.3.100:2181")
-                .namespace("lhtrpc")
+                .connectString(servers)
+                .namespace(root)
                 .retryPolicy(retryPolicy)
                 .build();
+        System.out.println("===> zk client starting to server[" + servers + "/" + root + "].");
         client.start();
-        System.out.println("===> zk client starting.");
     }
 
     @Override
@@ -52,7 +58,7 @@ public class ZkRegistryCenter implements RegistryCenter {
             }
             //创建实例的临时性节点
             String instancePath = servicePath + "/" + instance.toPath();
-            System.out.println("===> register to zk " + "service-" + service.toPath() + " instance-" + instance);
+            System.out.println("===> register to zk " + "/" + service.toPath() + " /" + instance);
             client.create().withMode(CreateMode.EPHEMERAL).forPath(instancePath, "provider".getBytes());
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -69,7 +75,7 @@ public class ZkRegistryCenter implements RegistryCenter {
             }
             //删除实例节点
             String instancePath = servicePath + "/" + instance.toPath();
-            System.out.println("===> unregister to zk " + "service-" + service.toPath() + " instance-" + instance);
+            System.out.println("===> unregister to zk " + "/" + service.toPath() + " /" + instance);
             client.delete().quietly().forPath(instancePath);//quietly如果没有节点则不抛出异常
         } catch (Exception e) {
             throw new RuntimeException(e);

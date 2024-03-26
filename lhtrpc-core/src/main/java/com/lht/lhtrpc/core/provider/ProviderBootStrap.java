@@ -31,7 +31,7 @@ public class ProviderBootStrap implements ApplicationContextAware {
     private ApplicationContext applicationContext;
 
     //多值map，value其实是ProviderMeta的list
-    private MultiValueMap<ServiceMeta, ProviderMeta> skeleton = new LinkedMultiValueMap<>();
+    private MultiValueMap<String, ProviderMeta> skeleton = new LinkedMultiValueMap<>();
 
     private InstanceMeta instance;
 
@@ -76,12 +76,24 @@ public class ProviderBootStrap implements ApplicationContextAware {
         rc.stop();
     }
 
-    private void unregisterService(ServiceMeta service) {
-        rc.unregister(service, instance);
+    private void unregisterService(String service) {
+        ServiceMeta serviceMeta = ServiceMeta.builder()
+                .app(app)
+                .namespace(namespace)
+                .env(env)
+                .name(service)
+                .build();
+        rc.unregister(serviceMeta, instance);
     }
 
-    private void registerService(ServiceMeta service) {
-        rc.register(service, instance);
+    private void registerService(String service) {
+        ServiceMeta serviceMeta = ServiceMeta.builder()
+                .app(app)
+                .namespace(namespace)
+                .env(env)
+                .name(service)
+                .build();
+        rc.register(serviceMeta, instance);
     }
 
     /**
@@ -103,19 +115,9 @@ public class ProviderBootStrap implements ApplicationContextAware {
     }
 
     private void createProvider(Class<?> anInterface, Object bean, Method m) {
-        ProviderMeta meta = new ProviderMeta();
-        meta.setMethod(m);
-        meta.setServiceImpl(bean);
-        meta.setMethodSign(MethodUtils.buildMethodSign(m));
+        ProviderMeta meta=ProviderMeta.builder().method(m).serviceImpl(bean).methodSign(MethodUtils.buildMethodSign(m)).build();
         System.out.println("创建provider: " + meta);
-        ServiceMeta service = ServiceMeta.builder()
-                .app(app)
-                .namespace(namespace)
-                .env(env)
-                .name(anInterface.getCanonicalName())
-                .build();
-        System.out.println("创建service: " + service);
-        skeleton.add(service, meta);
+        skeleton.add(anInterface.getCanonicalName(), meta);
     }
 
 
