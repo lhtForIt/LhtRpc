@@ -26,6 +26,9 @@ public class ProviderConfig {
     }
 
 
+    @Bean
+    public ProviderInvoker providerInvoker(ProviderBootStrap providerBootStrap) {return new ProviderInvoker(providerBootStrap);}
+
     /**
      * 在服务提供者启动和关闭时调用注册中心的启动和关闭方法，这样让两者联系起来，而不是各干各的
      */

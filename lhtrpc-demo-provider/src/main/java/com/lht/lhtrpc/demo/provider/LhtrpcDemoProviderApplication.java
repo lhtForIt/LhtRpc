@@ -4,6 +4,7 @@ import com.lht.lhtrpc.core.api.RpcRequest;
 import com.lht.lhtrpc.core.api.RpcResponse;
 import com.lht.lhtrpc.core.provider.ProviderBootStrap;
 import com.lht.lhtrpc.core.provider.ProviderConfig;
+import com.lht.lhtrpc.core.provider.ProviderInvoker;
 import com.lht.lhtrpc.core.utils.MethodUtils;
 import com.lht.lhtrpc.demo.api.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,11 +28,12 @@ public class LhtrpcDemoProviderApplication {
 
 
     @Autowired
-    private ProviderBootStrap providerBootStrap;
+    private ProviderInvoker providerInvoker;
+
     //利用http+json实现序列化
     @RequestMapping("/")
     public RpcResponse invoke(@RequestBody RpcRequest request){
-        return providerBootStrap.invokeRequest(request);
+        return providerInvoker.invokeRequest(request);
     }
 
 
