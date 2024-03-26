@@ -2,7 +2,9 @@ package com.lht.lhtrpc.core.provider;
 
 import com.lht.lhtrpc.core.annotation.LhtProvider;
 import com.lht.lhtrpc.core.api.RegistryCenter;
+import com.lht.lhtrpc.core.meta.InstanceMeta;
 import com.lht.lhtrpc.core.meta.ProviderMeta;
+import com.lht.lhtrpc.core.meta.ServiceMeta;
 import com.lht.lhtrpc.core.utils.MethodUtils;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -29,12 +31,21 @@ public class ProviderBootStrap implements ApplicationContextAware {
     private ApplicationContext applicationContext;
 
     //多值map，value其实是ProviderMeta的list
-    private MultiValueMap<String, ProviderMeta> skeleton = new LinkedMultiValueMap<>();
+    private MultiValueMap<ServiceMeta, ProviderMeta> skeleton = new LinkedMultiValueMap<>();
 
-    private String instance;
+    private InstanceMeta instance;
 
     @Value("${server.port}")
     private String port;
+
+    @Value("${app.id}")
+    private String app;
+
+    @Value("${app.namespace}")
+    private String namespace;
+
+    @Value("${app.env}")
+    private String env;
 
     private RegistryCenter rc;
 
@@ -54,7 +65,7 @@ public class ProviderBootStrap implements ApplicationContextAware {
     @SneakyThrows
     public void start() {
         String ip= InetAddress.getLocalHost().getHostAddress();
-        instance = ip + "_" + port;
+        instance = InstanceMeta.http(ip, Integer.parseInt(port));
         rc.start();
         skeleton.keySet().forEach(this::registerService);
     }
@@ -65,11 +76,11 @@ public class ProviderBootStrap implements ApplicationContextAware {
         rc.stop();
     }
 
-    private void unregisterService(String service) {
+    private void unregisterService(ServiceMeta service) {
         rc.unregister(service, instance);
     }
 
-    private void registerService(String service) {
+    private void registerService(ServiceMeta service) {
         rc.register(service, instance);
     }
 
@@ -97,7 +108,14 @@ public class ProviderBootStrap implements ApplicationContextAware {
         meta.setServiceImpl(bean);
         meta.setMethodSign(MethodUtils.buildMethodSign(m));
         System.out.println("创建provider: " + meta);
-        skeleton.add(anInterface.getCanonicalName(), meta);
+        ServiceMeta service = ServiceMeta.builder()
+                .app(app)
+                .namespace(namespace)
+                .env(env)
+                .name(anInterface.getCanonicalName())
+                .build();
+        System.out.println("创建service: " + service);
+        skeleton.add(service, meta);
     }
 
 

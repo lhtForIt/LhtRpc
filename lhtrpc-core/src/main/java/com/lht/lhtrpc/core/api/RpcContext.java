@@ -1,5 +1,6 @@
 package com.lht.lhtrpc.core.api;
 
+import com.lht.lhtrpc.core.meta.InstanceMeta;
 import lombok.Data;
 
 /**
@@ -14,9 +15,9 @@ import lombok.Data;
 @Data
 public class RpcContext {
 
-    private Router router;
-    private LoadBalancer loadBalancer;
-    private Filter filter;
+    private Router<InstanceMeta> router;
+    private LoadBalancer<InstanceMeta> loadBalancer;
+    private Filter<InstanceMeta> filter;
 
 
 }

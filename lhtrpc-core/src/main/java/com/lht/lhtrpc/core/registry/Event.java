@@ -1,5 +1,6 @@
 package com.lht.lhtrpc.core.registry;
 
+import com.lht.lhtrpc.core.meta.InstanceMeta;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -13,6 +14,6 @@ import java.util.List;
 @AllArgsConstructor
 public class Event {
 
-    List<String> data;
+    List<InstanceMeta> data;
 
 }

@@ -1,2 +1,7 @@
 server:
   port: 8081
+
+app:
+  id: lht-app
+  namespace: public
+  env: dev

@@ -1,5 +1,8 @@
 package com.lht.lhtrpc.core.api;
 
+import com.lht.lhtrpc.core.meta.InstanceMeta;
+import com.lht.lhtrpc.core.meta.ServiceMeta;
+
 import java.util.List;
 
 /**
@@ -12,18 +15,18 @@ public interface RegistryCenter {
     void stop(); // p/c
 
     //provider侧
-    void register(String service, String instance); // p
-    void unregister(String service, String instance); // p
+    void register(ServiceMeta service, InstanceMeta instance); // p
+    void unregister(ServiceMeta service, InstanceMeta instance); // p
 
     //consumer侧
-    List<String> fetchAll(String service); // c
-    void subscribe(String service,ChangedListener listener); // c
+    List<InstanceMeta> fetchAll(ServiceMeta service); // c
+    void subscribe(ServiceMeta service,ChangedListener listener); // c
 
     class StaticRegistryCenter implements RegistryCenter {
 
-        private List<String> providers;
+        private List<InstanceMeta> providers;
 
-        public StaticRegistryCenter(List<String> providers) {
+        public StaticRegistryCenter(List<InstanceMeta> providers) {
             this.providers = providers;
         }
 
@@ -38,22 +41,22 @@ public interface RegistryCenter {
         }
 
         @Override
-        public void register(String service, String instance) {
+        public void register(ServiceMeta service, InstanceMeta instance) {
 
         }
 
         @Override
-        public void unregister(String service, String instance) {
+        public void unregister(ServiceMeta service, InstanceMeta instance) {
 
         }
 
         @Override
-        public List<String> fetchAll(String service) {
+        public List<InstanceMeta> fetchAll(ServiceMeta service) {
             return providers;
         }
 
         @Override
-        public void subscribe(String service, ChangedListener listener) {
+        public void subscribe(ServiceMeta service, ChangedListener listener) {
 
         }
     }

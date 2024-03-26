@@ -3,6 +3,7 @@ package com.lht.lhtrpc.core.consumer;
 import com.lht.lhtrpc.core.api.RpcContext;
 import com.lht.lhtrpc.core.api.RpcRequest;
 import com.lht.lhtrpc.core.api.RpcResponse;
+import com.lht.lhtrpc.core.meta.InstanceMeta;
 import com.lht.lhtrpc.core.utils.MethodUtils;
 import com.lht.lhtrpc.core.utils.TypeUtils;
 
@@ -19,12 +20,12 @@ public class LhtInvocationHandler implements InvocationHandler {
 
 
     private Class<?> service;
-    private List<String> providers;
+    private List<InstanceMeta> providers;
 
     private RpcContext context;
     private HttpInvoker httpInvoker;
 
-    public LhtInvocationHandler(Class<?> service, RpcContext context, List<String> providers, HttpInvoker httpInvoker) {
+    public LhtInvocationHandler(Class<?> service, RpcContext context, List<InstanceMeta> providers, HttpInvoker httpInvoker) {
         this.service = service;
         this.context = context;
         this.providers = providers;
@@ -44,8 +45,9 @@ public class LhtInvocationHandler implements InvocationHandler {
         Object[] newArg = TypeUtils.initMapKey(args);
         rpcRequest.setArgs(newArg);
 
-        List<String> urls = context.getRouter().route(providers);
-        String url = (String) context.getLoadBalancer().choose(urls);
+        List<InstanceMeta> nodes = context.getRouter().route(providers);
+        InstanceMeta node = context.getLoadBalancer().choose(nodes);
+        String url = node.toUrl();
         System.out.println("loadBalancer.choose(urls) ==> " + url);
 
         RpcResponse rpcResponse = httpInvoker.post(rpcRequest, url);

@@ -5,9 +5,12 @@ import com.lht.lhtrpc.core.api.LoadBalancer;
 import com.lht.lhtrpc.core.api.RegistryCenter;
 import com.lht.lhtrpc.core.api.Router;
 import com.lht.lhtrpc.core.api.RpcContext;
+import com.lht.lhtrpc.core.meta.InstanceMeta;
+import com.lht.lhtrpc.core.meta.ServiceMeta;
 import com.lht.lhtrpc.core.utils.MethodUtils;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.EnvironmentAware;
@@ -39,6 +42,15 @@ public class ConsumerBootStrap implements ApplicationContextAware, EnvironmentAw
     //根据某些策略配置httpInvoker实现类,可以从配置文件设置，如果没有设置默认使用OkHttpInvoker
     private HttpInvoker httpInvoker;
 
+    @Value("${app.id}")
+    private String app;
+
+    @Value("${app.namespace}")
+    private String namespace;
+
+    @Value("${app.env}")
+    private String env;
+
     /**
      * 为什么provider直接用@PostConstruct就能初始化桩的集合，而consumer不能？
      * 因为provider其实只需要找到bean的类定义即可，只会用到类定义相关信息。
@@ -51,8 +63,8 @@ public class ConsumerBootStrap implements ApplicationContextAware, EnvironmentAw
      */
     public void start() {
 
-        LoadBalancer loadBalancer = applicationContext.getBean(LoadBalancer.class);
-        Router router = applicationContext.getBean(Router.class);
+        LoadBalancer<InstanceMeta> loadBalancer = applicationContext.getBean(LoadBalancer.class);
+        Router<InstanceMeta> router = applicationContext.getBean(Router.class);
         RegistryCenter rc = applicationContext.getBean(RegistryCenter.class);
         RpcContext context = new RpcContext();
         context.setRouter(router);
@@ -78,23 +90,21 @@ public class ConsumerBootStrap implements ApplicationContextAware, EnvironmentAw
 
     private Object createFromRegistry(Class<?> service, RpcContext context, RegistryCenter rc) {
         String serviceName = service.getCanonicalName();
-        List<String> providers = buildUrl4Zk(rc.fetchAll(serviceName));
-        rc.subscribe(serviceName, data -> {
+        ServiceMeta serviceMeta = ServiceMeta.builder()
+                .app(app)
+                .namespace(namespace)
+                .env(env)
+                .name(serviceName)
+                .build();
+        List<InstanceMeta> providers = rc.fetchAll(serviceMeta);
+        rc.subscribe(serviceMeta, data -> {
             providers.clear();
-            providers.addAll(buildUrl4Zk(data.getData()));
+            providers.addAll(data.getData());
         });
         return createConsumer(service, context, providers);
     }
 
-    private List<String> buildUrl4Zk(List<String> zkNodes) {
-        List<String> urls = zkNodes.stream().map(d -> "http://" + d.replace('_', ':')).collect(Collectors.toList());
-        System.out.println("===> map to providers:");
-        urls.forEach(System.out::println);
-        return urls;
-    }
-
-
-    private Object createConsumer(Class<?> service, RpcContext rpcContext, List<String> providers) {
+    private Object createConsumer(Class<?> service, RpcContext rpcContext, List<InstanceMeta> providers) {
         return Proxy.newProxyInstance(service.getClassLoader(), new Class[]{service}, new LhtInvocationHandler(service, rpcContext, providers, httpInvoker));
     }
 

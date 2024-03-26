@@ -3,6 +3,7 @@ package com.lht.lhtrpc.core.provider;
 import com.lht.lhtrpc.core.api.RpcRequest;
 import com.lht.lhtrpc.core.api.RpcResponse;
 import com.lht.lhtrpc.core.meta.ProviderMeta;
+import com.lht.lhtrpc.core.meta.ServiceMeta;
 import com.lht.lhtrpc.core.utils.TypeUtils;
 import org.springframework.util.MultiValueMap;
 
@@ -17,15 +18,23 @@ import java.util.Optional;
  */
 public class ProviderInvoker {
 
-    private MultiValueMap<String, ProviderMeta> skeleton;
+    private MultiValueMap<ServiceMeta, ProviderMeta> skeleton;
+    private ProviderBootStrap providerBootStrap;
 
     public ProviderInvoker(ProviderBootStrap providerBootStrap) {
         this.skeleton = providerBootStrap.getSkeleton();
+        this.providerBootStrap = providerBootStrap;
     }
 
     public RpcResponse invokeRequest(RpcRequest request) {
         System.out.println("service值为：" + request.getService());
-        List<ProviderMeta> providerMetas = skeleton.get(request.getService());
+        ServiceMeta serviceMeta = ServiceMeta.builder()
+                .app(providerBootStrap.getApp())
+                .namespace(providerBootStrap.getNamespace())
+                .env(providerBootStrap.getEnv())
+                .name(request.getService())
+                .build();
+        List<ProviderMeta> providerMetas = skeleton.get(serviceMeta);
         RpcResponse rpcResponse = new RpcResponse();
         try {
             ProviderMeta providerMeta = findProviderMeta(request, providerMetas);
