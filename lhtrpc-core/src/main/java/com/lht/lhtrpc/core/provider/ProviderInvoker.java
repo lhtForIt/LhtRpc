@@ -4,6 +4,7 @@ import com.lht.lhtrpc.core.api.RpcRequest;
 import com.lht.lhtrpc.core.api.RpcResponse;
 import com.lht.lhtrpc.core.meta.ProviderMeta;
 import com.lht.lhtrpc.core.utils.MethodUtils;
+import com.lht.lhtrpc.core.utils.TypeUtils;
 import org.springframework.util.MultiValueMap;
 
 import java.lang.reflect.InvocationTargetException;
@@ -64,40 +65,12 @@ public class ProviderInvoker {
         Class<?>[] parameterTypes = method.getParameterTypes();
         Object[] newArgs = new Object[args.length];
         for (int i = 0; i < args.length; i++) {
-            if (Map.class.isAssignableFrom(parameterTypes[i])) {
-                Map map = new HashMap();
-                Type[] genericParameterTypes = method.getGenericParameterTypes();
-                if (genericParameterTypes[i] instanceof ParameterizedType parameterizedType) {
-                    Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
-                    Class<?> keyType = (Class<?>) actualTypeArguments[0];
-                    Class<?> valueType = (Class<?>) actualTypeArguments[1];
-                    ((Map) args[i]).entrySet().stream().forEach(e -> {
-                        Map.Entry entry = (Map.Entry) e;
-                        Object key = MethodUtils.convertType(entry.getKey(), keyType);
-                        Object value = MethodUtils.convertType(entry.getValue(), valueType);
-                        map.put(key, value);
-                    });
-                    newArgs[i] = map;
-                } else {
-                    newArgs[i] = args[i];
-                }
-            } else if (List.class.isAssignableFrom(parameterTypes[i])) {
-                List list = new ArrayList();
-                Type[] genericParameterTypes = method.getGenericParameterTypes();
-                if (genericParameterTypes[i] instanceof ParameterizedType parameterizedType) {
-                    Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
-                    Class<?> type = (Class<?>) actualTypeArguments[0];
-                    ((List) args[i]).stream().forEach(d -> list.add(MethodUtils.convertType(d, type)));
-                    newArgs[i] = list;
-                } else {
-                    newArgs[i] = args[i];
-                }
-            } else {
-                newArgs[i] = MethodUtils.convertType(args[i], parameterTypes[i]);
-            }
+            TypeUtils.buildNewArgs(args, method, parameterTypes, i, newArgs);
         }
         return newArgs;
     }
+
+
 
     private ProviderMeta findProviderMeta(RpcRequest request, List<ProviderMeta> providerMetas) {
         Optional<ProviderMeta> meta = providerMetas.stream().filter(d -> d.getMethodSign().equals(request.getMethodSign())).findFirst();

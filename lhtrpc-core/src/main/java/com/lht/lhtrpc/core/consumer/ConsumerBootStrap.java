@@ -3,6 +3,7 @@ package com.lht.lhtrpc.core.consumer;
 import com.lht.lhtrpc.core.annotation.LhtConsumer;
 import com.lht.lhtrpc.core.api.*;
 import com.lht.lhtrpc.core.registry.Event;
+import com.lht.lhtrpc.core.utils.MethodUtils;
 import lombok.Data;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -50,18 +51,10 @@ public class ConsumerBootStrap implements ApplicationContextAware, EnvironmentAw
         context.setRouter(router);
         context.setLoadBalancer(loadBalancer);
 
-
-//        String urls = environment.getProperty("lhtrpc.providers");
-//        if (Strings.isEmpty(urls)) {
-//            System.out.println("lhtrpc.providers is empty");
-//        }
-//        String[] providers = urls.split(",");
-
-
         String[] names = applicationContext.getBeanDefinitionNames();
         for (String beanName : names) {
             Object bean = applicationContext.getBean(beanName);
-            List<Field> fields = findAnnotatedField(bean.getClass());
+            List<Field> fields = MethodUtils.findAnnotatedField(bean.getClass(), LhtConsumer.class);
             fields.stream().forEach(d->{
                 try {
                     Class<?> service = d.getType();
@@ -93,24 +86,7 @@ public class ConsumerBootStrap implements ApplicationContextAware, EnvironmentAw
         return urls;
     }
 
-    /**
-     * 这里的类都会被cglib增强，那么如果直接用aClass.getDeclaredFields()去找增强的子类的字段，
-     * 但是父类的字段是没有的，因此userService就是空，解决方法也很简单，直接循环着去找它的父类，拿到它
-     * 父类所有的字段，那么userService就一定在里面。
-     */
-    private List<Field> findAnnotatedField(Class<?> aClass) {
-        List<Field> res = new ArrayList<>();
-        while (aClass != null) {
-            Field[] fields = aClass.getDeclaredFields();
-            for (Field f : fields) {
-                if (f.isAnnotationPresent(LhtConsumer.class)) {
-                    res.add(f);
-                }
-            }
-            aClass = aClass.getSuperclass();
-        }
-        return res;
-    }
+
 
     private Object createConsumer(Class<?> service, RpcContext rpcContext, List<String> providers) {
         return Proxy.newProxyInstance(service.getClassLoader(), new Class[]{service}, new LhtInvocationHandler(service, rpcContext, providers));

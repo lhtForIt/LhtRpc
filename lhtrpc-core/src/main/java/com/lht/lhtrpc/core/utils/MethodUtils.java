@@ -3,14 +3,13 @@ package com.lht.lhtrpc.core.utils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.lht.lhtrpc.core.annotation.LhtConsumer;
 import org.springframework.core.annotation.Order;
 import org.springframework.util.CollectionUtils;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Leo
@@ -25,57 +24,25 @@ public class MethodUtils {
         return sb.toString();
     }
 
-    public static Object convertType(Object sourceType, Class<?> targetType) {
 
-        if (sourceType == null) return null;
 
-        Class<?> sourceTypeClass = sourceType.getClass();
-
-        //转换类型是被转换类型子类直接返回(targetType是sourceTypeClass的超类或接口)
-        if (targetType.isAssignableFrom(sourceTypeClass)) return sourceType;
-
-        //对象
-        if (sourceType instanceof Map jsonObj) {
-            JSONObject jsonObject = new JSONObject(jsonObj);
-            return jsonObject.toJavaObject(targetType);
-//            return JSON.parseObject(JSON.toJSONString(jsonObj), targetType);
-        }
-
-        //数组
-        if (targetType.isArray()) {
-            if (sourceType instanceof List list) {
-                sourceType = list.toArray();
+    /**
+     * 这里的类都会被cglib增强，那么如果直接用aClass.getDeclaredFields()去找增强的子类的字段，
+     * 但是父类的字段是没有的，因此userService就是空，解决方法也很简单，直接循环着去找它的父类，拿到它
+     * 父类所有的字段，那么userService就一定在里面。
+     */
+    public static List<Field> findAnnotatedField(Class<?> aClass, Class<? extends Annotation> annotationClass) {
+        List<Field> res = new ArrayList<>();
+        while (aClass != null) {
+            Field[] fields = aClass.getDeclaredFields();
+            for (Field f : fields) {
+                if (f.isAnnotationPresent(annotationClass)) {
+                    res.add(f);
+                }
             }
-            int length = Array.getLength(sourceType);
-            Class<?> componentType = targetType.getComponentType();
-            Object arr = Array.newInstance(componentType, length);
-            for (int i = 0; i < length; i++) {
-                Array.set(arr, i, Array.get(sourceType, i));
-            }
-            return arr;
+            aClass = aClass.getSuperclass();
         }
-
-
-        if (targetType.equals(Integer.class) || targetType.equals(Integer.TYPE)) {
-            return Integer.valueOf(sourceType.toString());
-        } else if (targetType.equals(Long.class) || targetType.equals(Long.TYPE)) {
-            return Long.valueOf(sourceType.toString());
-        } else if (targetType.equals(Double.class) || targetType.equals(Double.TYPE)) {
-            return Double.valueOf(sourceType.toString());
-        } else if (targetType.equals(Float.class) || targetType.equals(Float.TYPE)) {
-            return Float.valueOf(sourceType.toString());
-        } else if (targetType.equals(Boolean.class) || targetType.equals(Boolean.TYPE)) {
-            return Boolean.valueOf(sourceType.toString());
-        } else if (targetType.equals(Short.class) || targetType.equals(Short.TYPE)) {
-            return Short.valueOf(sourceType.toString());
-        } else if (targetType.equals(Character.class) || targetType.equals(Character.TYPE)) {
-            return Character.valueOf(sourceType.toString().toCharArray()[0]);
-        } else if (targetType.equals(Byte.class) || targetType.equals(Byte.TYPE)) {
-            return Byte.valueOf(sourceType.toString());
-        }
-
-        return sourceType;
-
+        return res;
     }
 
     public static List<MethodUtils> test(Map<Integer,String> map) {
