@@ -99,7 +99,7 @@ public class ZkRegistryCenter implements RegistryCenter {
     private static List<InstanceMeta> mapInstance(List<String> nodes) {
         return nodes.stream().map(d -> {
             String[] s = d.split("_");
-            return new InstanceMeta("http", s[0], Integer.valueOf(s[1]));
+            return InstanceMeta.http(s[0], Integer.valueOf(s[1]));
         }).collect(Collectors.toList());
     }
 

@@ -21,15 +21,16 @@ public class InstanceMeta {
     private String scheme;
     private String host;
     private int port;
-    private String context = "";//path
+    private String context;//path
 
     private boolean status;// 上下线状态 online or offline
     private Map<String, String> parameters;//表示哪个机房的
 
-    public InstanceMeta(String scheme, String host, int port) {
+    public InstanceMeta(String scheme, String host, int port,String context) {
         this.scheme = scheme;
         this.host = host;
         this.port = port;
+        this.context = context;
     }
 
     public String toPath() {
@@ -41,7 +42,7 @@ public class InstanceMeta {
     }
 
     public static InstanceMeta http(String host, int port) {
-        return new InstanceMeta("http", host, port);
+        return new InstanceMeta("http", host, port,"");
     }
 
 }

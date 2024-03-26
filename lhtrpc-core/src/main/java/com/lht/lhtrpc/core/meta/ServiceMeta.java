@@ -17,6 +17,7 @@ public class ServiceMeta {
     private String namespace;//命名空间，做服务隔离
     private String env;//环境
     private String name;//服务名称
+    private String version;//版本号
 
 
     public String toPath(){
