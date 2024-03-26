@@ -43,8 +43,8 @@ public class ProviderBootStrap implements ApplicationContextAware {
     @Value("${server.port}")
     private String port;
 
-//    @Autowired
-//    private RegistryCenter rc;
+    @Autowired
+    private RegistryCenter rc;
 
 
     @PostConstruct
@@ -71,12 +71,10 @@ public class ProviderBootStrap implements ApplicationContextAware {
     }
 
     private void unregisterService(String service) {
-        RegistryCenter rc = applicationContext.getBean(RegistryCenter.class);
         rc.unregister(service, instance);
     }
 
     private void registerService(String service) {
-        RegistryCenter rc = applicationContext.getBean(RegistryCenter.class);
         rc.register(service, instance);
     }
 

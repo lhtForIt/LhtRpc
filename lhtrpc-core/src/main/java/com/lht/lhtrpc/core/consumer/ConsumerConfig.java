@@ -57,7 +57,7 @@ public class ConsumerConfig {
 
     //注册中心自动启动和销毁通过initMethod和destroyMethod
     @Bean(initMethod = "start", destroyMethod = "stop")
-    public RegistryCenter registryCenter() {return new ZkRegistryCenter();}
+    public RegistryCenter registryCenterConsumer() {return new ZkRegistryCenter();}
 
 
 }

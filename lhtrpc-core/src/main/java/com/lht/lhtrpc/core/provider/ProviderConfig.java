@@ -27,7 +27,7 @@ public class ProviderConfig {
 
 
     @Bean(initMethod = "start", destroyMethod = "stop")
-    public RegistryCenter registryCenter() {return new ZkRegistryCenter();}
+    public RegistryCenter registryCenterProvider() {return new ZkRegistryCenter();}
 
     @Bean
     @Order(Integer.MIN_VALUE)
