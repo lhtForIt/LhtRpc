@@ -1,10 +1,12 @@
 package com.lht.lhtrpc.core.consumer;
 
+import com.lht.lhtrpc.core.api.Filter;
 import com.lht.lhtrpc.core.api.LoadBalancer;
 import com.lht.lhtrpc.core.api.RegistryCenter;
 import com.lht.lhtrpc.core.api.Router;
 import com.lht.lhtrpc.core.cluster.RandomRibonLoadBalancer;
 import com.lht.lhtrpc.core.consumer.http.OkHttpInvoker;
+import com.lht.lhtrpc.core.filter.CacheFilter;
 import com.lht.lhtrpc.core.registry.ZkRegistryCenter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -53,6 +55,9 @@ public class ConsumerConfig {
     public Router router() {
         return Router.Default;
     }
+
+    @Bean
+    public Filter filter() {return new CacheFilter();}
 
     @Bean
     public HttpInvoker httpInvoker() {return new OkHttpInvoker();}

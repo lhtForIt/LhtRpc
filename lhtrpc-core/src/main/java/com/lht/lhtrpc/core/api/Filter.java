@@ -3,6 +3,9 @@ package com.lht.lhtrpc.core.api;
 import java.util.List;
 
 /**
+ *
+ * 过滤器
+ *
  * Leo liang [lhtshent@gmail.com]
  * 2024/3/17 17:22
  *
@@ -11,6 +14,22 @@ import java.util.List;
  */
 public interface Filter<T> {
 
-    List<T> filter(List<T> providers);
+    Object prefilter(RpcRequest request);
+
+    Object postfilter(RpcRequest request, RpcResponse response, Object result);
+
+//    Filter next();
+
+    Filter Default = new Filter() {
+        @Override
+        public Object prefilter(RpcRequest request) {
+            return null;
+        }
+
+        @Override
+        public Object postfilter(RpcRequest request, RpcResponse response, Object result) {
+            return result;
+        }
+    };
 
 }

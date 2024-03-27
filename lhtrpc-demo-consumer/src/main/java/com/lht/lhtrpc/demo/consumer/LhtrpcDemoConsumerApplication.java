@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Arrays;
@@ -40,7 +41,7 @@ public class LhtrpcDemoConsumerApplication {
 
 	//网关
 	@RequestMapping("/")
-	public User find(int id){
+	public User find(@RequestParam("id") int id){
 		return userService.findById(id);
 	}
 

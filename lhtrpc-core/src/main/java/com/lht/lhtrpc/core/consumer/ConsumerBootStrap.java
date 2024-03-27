@@ -1,10 +1,7 @@
 package com.lht.lhtrpc.core.consumer;
 
 import com.lht.lhtrpc.core.annotation.LhtConsumer;
-import com.lht.lhtrpc.core.api.LoadBalancer;
-import com.lht.lhtrpc.core.api.RegistryCenter;
-import com.lht.lhtrpc.core.api.Router;
-import com.lht.lhtrpc.core.api.RpcContext;
+import com.lht.lhtrpc.core.api.*;
 import com.lht.lhtrpc.core.meta.InstanceMeta;
 import com.lht.lhtrpc.core.meta.ServiceMeta;
 import com.lht.lhtrpc.core.utils.MethodUtils;
@@ -65,10 +62,12 @@ public class ConsumerBootStrap implements ApplicationContextAware, EnvironmentAw
 
         LoadBalancer<InstanceMeta> loadBalancer = applicationContext.getBean(LoadBalancer.class);
         Router<InstanceMeta> router = applicationContext.getBean(Router.class);
+        List<Filter> filters = applicationContext.getBeansOfType(Filter.class).values().stream().toList();
         RegistryCenter rc = applicationContext.getBean(RegistryCenter.class);
         RpcContext context = new RpcContext();
         context.setRouter(router);
         context.setLoadBalancer(loadBalancer);
+        context.setFilters(filters);
 
         String[] names = applicationContext.getBeanDefinitionNames();
         for (String beanName : names) {

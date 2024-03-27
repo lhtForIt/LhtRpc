@@ -3,6 +3,8 @@ package com.lht.lhtrpc.core.api;
 import com.lht.lhtrpc.core.meta.InstanceMeta;
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * Leo liang [lhtshent@gmail.com]
  * 2024/3/17 18:47
@@ -17,7 +19,6 @@ public class RpcContext {
 
     private Router<InstanceMeta> router;
     private LoadBalancer<InstanceMeta> loadBalancer;
-    private Filter<InstanceMeta> filter;
-
+    private List<Filter> filters;
 
 }
