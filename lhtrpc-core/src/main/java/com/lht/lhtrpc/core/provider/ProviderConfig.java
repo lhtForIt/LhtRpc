@@ -2,6 +2,7 @@ package com.lht.lhtrpc.core.provider;
 
 import com.lht.lhtrpc.core.api.RegistryCenter;
 import com.lht.lhtrpc.core.registry.ZkRegistryCenter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,6 +13,7 @@ import org.springframework.core.annotation.Order;
  * @date 2024/03/07
  */
 @Configuration
+@Slf4j
 public class ProviderConfig {
 
 
@@ -34,9 +36,9 @@ public class ProviderConfig {
     @Order(Integer.MIN_VALUE)
     public ApplicationRunner providersBootStrapRunner(ProviderBootStrap providerBootStrap) {
         return x -> {
-            System.out.println("----providersBootStrapRunner start----");
+            log.info("----providersBootStrapRunner start----");
             providerBootStrap.start();
-            System.out.println("----providersBootStrapRunner end----");
+            log.info("----providersBootStrapRunner end----");
         };
     }
 

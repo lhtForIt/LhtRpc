@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.lht.lhtrpc.core.api.RpcRequest;
 import com.lht.lhtrpc.core.api.RpcResponse;
 import com.lht.lhtrpc.core.consumer.HttpInvoker;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.springframework.stereotype.Component;
 
@@ -14,6 +15,7 @@ import java.util.concurrent.TimeUnit;
  * @author Leo
  * @date 2024/03/26
  */
+@Slf4j
 public class OkHttpInvoker implements HttpInvoker {
 
     private final static MediaType MEDIA_TYPE = MediaType.get("application/json; charset=utf-8");
@@ -33,14 +35,14 @@ public class OkHttpInvoker implements HttpInvoker {
     public RpcResponse post(RpcRequest rpcRequest,String url) {
 
         String requestJson = JSON.toJSONString(rpcRequest);
-        System.out.println("requestJson = " + requestJson);
+        log.debug("requestJson = " + requestJson);
         Request request = new Request.Builder()
                 .url(url)
                 .post(RequestBody.create(requestJson, MEDIA_TYPE))
                 .build();
         try {
             String responseJson = client.newCall(request).execute().body().string();
-            System.out.println("responseJson = " + responseJson);
+            log.debug("responseJson = " + responseJson);
             RpcResponse rpcResponse = JSON.parseObject(responseJson, RpcResponse.class);
             return rpcResponse;
         } catch (IOException e) {

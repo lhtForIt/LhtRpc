@@ -6,6 +6,7 @@ import com.lht.lhtrpc.core.api.Router;
 import com.lht.lhtrpc.core.cluster.RandomRibonLoadBalancer;
 import com.lht.lhtrpc.core.consumer.http.OkHttpInvoker;
 import com.lht.lhtrpc.core.registry.ZkRegistryCenter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
@@ -17,6 +18,7 @@ import org.springframework.core.annotation.Order;
  * @date 2024/03/10
  */
 @Configuration
+@Slf4j
 public class ConsumerConfig {
 
     @Value("${lhtrpc.providers}")
@@ -35,9 +37,9 @@ public class ConsumerConfig {
     @Order(Integer.MIN_VALUE)
     public ApplicationRunner consumerBootStrapRunner(ConsumerBootStrap consumerBootStrap) {
         return x -> {
-            System.out.println("----consumerBootStrapRunner start----");
+            log.info("----consumerBootStrapRunner start----");
             consumerBootStrap.start();
-            System.out.println("----consumerBootStrapRunner end----");
+            log.info("----consumerBootStrapRunner end----");
         };
     }
 

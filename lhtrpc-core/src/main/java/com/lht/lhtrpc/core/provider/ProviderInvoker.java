@@ -5,6 +5,7 @@ import com.lht.lhtrpc.core.api.RpcResponse;
 import com.lht.lhtrpc.core.meta.ProviderMeta;
 import com.lht.lhtrpc.core.meta.ServiceMeta;
 import com.lht.lhtrpc.core.utils.TypeUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.MultiValueMap;
 
 import java.lang.reflect.InvocationTargetException;
@@ -16,6 +17,7 @@ import java.util.Optional;
  * @author Leo
  * @date 2024/03/26
  */
+@Slf4j
 public class ProviderInvoker {
 
     private MultiValueMap<String, ProviderMeta> skeleton;
@@ -25,7 +27,7 @@ public class ProviderInvoker {
     }
 
     public RpcResponse invokeRequest(RpcRequest request) {
-        System.out.println("service值为：" + request.getService());
+        log.debug("service值为：" + request.getService());
         List<ProviderMeta> providerMetas = skeleton.get(request.getService());
         RpcResponse rpcResponse = new RpcResponse();
         try {

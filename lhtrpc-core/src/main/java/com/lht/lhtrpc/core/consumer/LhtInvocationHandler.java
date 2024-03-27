@@ -6,6 +6,7 @@ import com.lht.lhtrpc.core.api.RpcResponse;
 import com.lht.lhtrpc.core.meta.InstanceMeta;
 import com.lht.lhtrpc.core.utils.MethodUtils;
 import com.lht.lhtrpc.core.utils.TypeUtils;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -16,6 +17,7 @@ import java.util.List;
  * @author Leo
  * @date 2024/03/11
  */
+@Slf4j
 public class LhtInvocationHandler implements InvocationHandler {
 
 
@@ -48,7 +50,7 @@ public class LhtInvocationHandler implements InvocationHandler {
         List<InstanceMeta> nodes = context.getRouter().route(providers);
         InstanceMeta node = context.getLoadBalancer().choose(nodes);
         String url = node.toUrl();
-        System.out.println("loadBalancer.choose(urls) ==> " + url);
+        log.debug("loadBalancer.choose(urls) ==> " + url);
 
         RpcResponse rpcResponse = httpInvoker.post(rpcRequest, url);
         //这里如果不转，返回的其实是一个jsonObject对象，但是服务端调用返回的需要是具体的对象，所以需要进行转换(序列化和反序列化？)

@@ -10,3 +10,8 @@ app:
   id: lht-app
   namespace: public
   env: dev
+
+logging:
+  level:
+    root: error
+    com.lht.lhtrpc: info
