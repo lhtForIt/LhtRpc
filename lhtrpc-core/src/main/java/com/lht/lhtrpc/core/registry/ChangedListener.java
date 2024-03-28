@@ -1,4 +1,4 @@
-package com.lht.lhtrpc.core.api;
+package com.lht.lhtrpc.core.registry;
 
 import com.lht.lhtrpc.core.registry.Event;
 

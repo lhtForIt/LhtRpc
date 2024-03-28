@@ -2,6 +2,7 @@ package com.lht.lhtrpc.core.api;
 
 import com.lht.lhtrpc.core.meta.InstanceMeta;
 import com.lht.lhtrpc.core.meta.ServiceMeta;
+import com.lht.lhtrpc.core.registry.ChangedListener;
 
 import java.util.List;
 
@@ -20,7 +21,7 @@ public interface RegistryCenter {
 
     //consumer侧
     List<InstanceMeta> fetchAll(ServiceMeta service); // c
-    void subscribe(ServiceMeta service,ChangedListener listener); // c
+    void subscribe(ServiceMeta service, ChangedListener listener); // c
 
     class StaticRegistryCenter implements RegistryCenter {
 

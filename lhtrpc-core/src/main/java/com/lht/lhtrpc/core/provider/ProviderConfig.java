@@ -1,9 +1,10 @@
 package com.lht.lhtrpc.core.provider;
 
 import com.lht.lhtrpc.core.api.RegistryCenter;
-import com.lht.lhtrpc.core.registry.ZkRegistryCenter;
+import com.lht.lhtrpc.core.registry.zk.ZkRegistryCenter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -30,6 +31,7 @@ public class ProviderConfig {
      * 在服务提供者启动和关闭时调用注册中心的启动和关闭方法，这样让两者联系起来，而不是各干各的
      */
     @Bean //(initMethod = "start", destroyMethod = "stop")
+    @ConditionalOnMissingBean
     public RegistryCenter registryCenterProvider() {return new ZkRegistryCenter();}
 
     @Bean

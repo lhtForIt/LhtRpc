@@ -5,13 +5,11 @@ import com.lht.lhtrpc.core.api.LoadBalancer;
 import com.lht.lhtrpc.core.api.RegistryCenter;
 import com.lht.lhtrpc.core.api.Router;
 import com.lht.lhtrpc.core.cluster.RandomRibonLoadBalancer;
-import com.lht.lhtrpc.core.consumer.http.OkHttpInvoker;
-import com.lht.lhtrpc.core.filter.CacheFilter;
-import com.lht.lhtrpc.core.filter.MockFilter;
-import com.lht.lhtrpc.core.registry.ZkRegistryCenter;
+import com.lht.lhtrpc.core.registry.zk.ZkRegistryCenter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -68,6 +66,7 @@ public class ConsumerConfig {
 
     //注册中心自动启动和销毁通过initMethod和destroyMethod
     @Bean(initMethod = "start", destroyMethod = "stop")
+    @ConditionalOnMissingBean
     public RegistryCenter registryCenterConsumer() {return new ZkRegistryCenter();}
 
 

@@ -1,10 +1,11 @@
-package com.lht.lhtrpc.core.registry;
+package com.lht.lhtrpc.core.registry.zk;
 
-import com.lht.lhtrpc.core.api.ChangedListener;
+import com.lht.lhtrpc.core.registry.ChangedListener;
 import com.lht.lhtrpc.core.api.RpcException;
 import com.lht.lhtrpc.core.api.RegistryCenter;
 import com.lht.lhtrpc.core.meta.InstanceMeta;
 import com.lht.lhtrpc.core.meta.ServiceMeta;
+import com.lht.lhtrpc.core.registry.Event;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.RetryPolicy;
@@ -15,6 +16,7 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.zookeeper.CreateMode;
 import org.springframework.beans.factory.annotation.Value;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,6 +35,8 @@ public class ZkRegistryCenter implements RegistryCenter {
 
     private CuratorFramework client;
 
+    private List<TreeCache> caches = new ArrayList<>();
+
     @Override
     public void start() {
         RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
@@ -47,8 +51,10 @@ public class ZkRegistryCenter implements RegistryCenter {
 
     @Override
     public void stop() {
-        client.close();
+        log.info(" ===> zk tree cache closed.");
+        caches.forEach(TreeCache::close);
         log.info("===> zk client stopped.");
+        client.close();
     }
 
     @Override
@@ -117,6 +123,7 @@ public class ZkRegistryCenter implements RegistryCenter {
             listener.fire(new Event(nodes));
         });
         cache.start();
+        caches.add(cache);
     }
 
 
