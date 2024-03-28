@@ -22,12 +22,12 @@ public class OkHttpInvoker implements HttpInvoker {
 
     private OkHttpClient client;
 
-    public OkHttpInvoker() {
+    public OkHttpInvoker(int readTimeout,int writeTimeout,int connectTimeout) {
         this.client = new OkHttpClient.Builder()
                 .connectionPool(new ConnectionPool(16,60, TimeUnit.SECONDS))
-                .readTimeout(300, TimeUnit.SECONDS)
-                .writeTimeout(300,TimeUnit.SECONDS)
-                .connectTimeout(300,TimeUnit.SECONDS)
+                .readTimeout(readTimeout, TimeUnit.MILLISECONDS)
+                .writeTimeout(writeTimeout,TimeUnit.MILLISECONDS)
+                .connectTimeout(connectTimeout,TimeUnit.MILLISECONDS)
                 .build();
     }
 

@@ -30,6 +30,8 @@ public interface UserService {
 
     List<User> getList(List<User> list);
 
+    User find(int timeout);
+
 
 
 

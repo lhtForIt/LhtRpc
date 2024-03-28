@@ -10,8 +10,13 @@ app:
   id: lht-app
   namespace: public
   env: dev
+  retry: 3
+  okhttp:
+    connectTimeout: 3000
+    readTimeout: 3000
+    writeTimeout: 3000
 
 logging:
   level:
     root: error
-    com.lht.lhtrpc: info
+    com.lht.lhtrpc: debug

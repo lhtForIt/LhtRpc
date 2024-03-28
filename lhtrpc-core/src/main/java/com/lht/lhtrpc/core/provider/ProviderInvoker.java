@@ -1,10 +1,9 @@
 package com.lht.lhtrpc.core.provider;
 
-import com.lht.lhtrpc.core.api.LhtRpcException;
+import com.lht.lhtrpc.core.api.RpcException;
 import com.lht.lhtrpc.core.api.RpcRequest;
 import com.lht.lhtrpc.core.api.RpcResponse;
 import com.lht.lhtrpc.core.meta.ProviderMeta;
-import com.lht.lhtrpc.core.meta.ServiceMeta;
 import com.lht.lhtrpc.core.utils.TypeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.MultiValueMap;
@@ -52,10 +51,10 @@ public class ProviderInvoker {
             rpcResponse.setData(result);
         } catch (InvocationTargetException e) {
             e.printStackTrace();
-            rpcResponse.setEx(new LhtRpcException(e.getTargetException().getMessage()));
+            rpcResponse.setEx(new RpcException(e.getTargetException().getMessage()));
         } catch (IllegalAccessException e) {
             e.printStackTrace();
-            rpcResponse.setEx(new LhtRpcException(e.getMessage()));
+            rpcResponse.setEx(new RpcException(e.getMessage()));
         }
         return rpcResponse;
     }

@@ -1,6 +1,7 @@
 package com.lht.lhtrpc.core.consumer;
 
 import com.lht.lhtrpc.core.api.*;
+import com.lht.lhtrpc.core.consumer.http.OkHttpInvoker;
 import com.lht.lhtrpc.core.meta.InstanceMeta;
 import com.lht.lhtrpc.core.utils.MethodUtils;
 import com.lht.lhtrpc.core.utils.TypeUtils;
@@ -9,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.net.SocketTimeoutException;
 import java.util.List;
 
 /**
@@ -26,11 +28,14 @@ public class LhtInvocationHandler implements InvocationHandler {
     private RpcContext context;
     private HttpInvoker httpInvoker;
 
-    public LhtInvocationHandler(Class<?> service, RpcContext context, List<InstanceMeta> providers, HttpInvoker httpInvoker) {
+    public LhtInvocationHandler(Class<?> service, RpcContext context, List<InstanceMeta> providers) {
         this.service = service;
         this.context = context;
         this.providers = providers;
-        this.httpInvoker = httpInvoker;
+        int readTimeout = Integer.parseInt(context.getParamerters().getOrDefault("app.okhttp.readTimeout", "1000"));
+        int writeTimeout = Integer.parseInt(context.getParamerters().getOrDefault("app.okhttp.writeTimeout", "1000"));
+        int connectTimeout = Integer.parseInt(context.getParamerters().getOrDefault("app.okhttp.connectTimeout", "1000"));
+        this.httpInvoker = new OkHttpInvoker(readTimeout, writeTimeout, connectTimeout);
     }
 
     @Override
@@ -46,31 +51,49 @@ public class LhtInvocationHandler implements InvocationHandler {
         Object[] newArg = TypeUtils.initMapKey(args);
         rpcRequest.setArgs(newArg);
 
-        //这里用lambdm表达式不能返回，所有用foreach
-        for (Filter filter : context.getFilters()) {
-            Object response=filter.prefilter(rpcRequest);
-            if (response != null) {
-                log.debug(filter.getClass().getName() + "===> prefilter: " + response);
-                return response;
+
+        //超时重试，没配置默认不重试
+        int retries = Integer.parseInt(context.getParamerters().getOrDefault("app.retry", "0"));
+
+        while (retries-- > 0) {
+
+            log.debug("========> retries:" + retries);
+
+            try{
+                //这里用lambdm表达式不能返回，所有用foreach
+                for (Filter filter : context.getFilters()) {
+                    Object response=filter.prefilter(rpcRequest);
+                    if (response != null) {
+                        log.debug(filter.getClass().getName() + "===> prefilter: " + response);
+                        return response;
+                    }
+                }
+
+                List<InstanceMeta> nodes = context.getRouter().route(providers);
+                InstanceMeta node = context.getLoadBalancer().choose(nodes);
+                String url = node.toUrl();
+                log.debug("loadBalancer.choose(urls) ==> " + url);
+
+                RpcResponse rpcResponse = httpInvoker.post(rpcRequest, url);
+                Object result = castToResult(method, rpcResponse);
+
+                for (Filter filter : context.getFilters()) {
+                    Object filterResult = filter.postfilter(rpcRequest, rpcResponse, result);
+                    if (filterResult != null) {
+                        return filterResult;
+                    }
+                }
+
+                return result;
+            }catch (RuntimeException e){
+                if (!(e.getCause() instanceof SocketTimeoutException)) {
+                    throw new RpcException(e);
+                }
             }
         }
 
-        List<InstanceMeta> nodes = context.getRouter().route(providers);
-        InstanceMeta node = context.getLoadBalancer().choose(nodes);
-        String url = node.toUrl();
-        log.debug("loadBalancer.choose(urls) ==> " + url);
+        return null;
 
-        RpcResponse rpcResponse = httpInvoker.post(rpcRequest, url);
-        Object result = castToResult(method, rpcResponse);
-
-        for (Filter filter : context.getFilters()) {
-            Object filterResult = filter.postfilter(rpcRequest, rpcResponse, result);
-            if (filterResult != null) {
-                return filterResult;
-            }
-        }
-
-        return result;
     }
 
     @Nullable
@@ -81,10 +104,10 @@ public class LhtInvocationHandler implements InvocationHandler {
         } else {
             //异常不能直接返回，会类转换失败，直接抛出去就好，抛的时候可以控制，是所有堆栈信息都返回去，还是只返回主要信息，这里只返回主要信息
             Exception exception = rpcResponse.getEx();
-            if (exception instanceof LhtRpcException ex) {
+            if (exception instanceof RpcException ex) {
                 throw ex;
             }
-            throw new LhtRpcException(exception, LhtRpcException.UnKnowEx);
+            throw new RpcException(exception, RpcException.UnKnowEx);
         }
     }
 }

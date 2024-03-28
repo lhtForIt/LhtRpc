@@ -7,7 +7,7 @@ import lombok.Data;
  * @date 2024/03/28
  */
 @Data
-public class LhtRpcException extends RuntimeException {
+public class RpcException extends RuntimeException {
 
     private String errCode;
 
@@ -22,22 +22,22 @@ public class LhtRpcException extends RuntimeException {
     public static final String NoSuchMethod = "X002-"+"method_not_exists";
     public static final String UnKnowEx = "Z001-"+"unknown_exception";
 
-    public LhtRpcException() {
+    public RpcException() {
     }
 
-    public LhtRpcException(String message) {
+    public RpcException(String message) {
         super(message);
     }
 
-    public LhtRpcException(String message, Throwable cause) {
+    public RpcException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public LhtRpcException(Throwable cause) {
+    public RpcException(Throwable cause) {
         super(cause);
     }
 
-    public LhtRpcException(Throwable cause,String errCode) {
+    public RpcException(Throwable cause, String errCode) {
         super(cause);
         this.errCode = errCode;
     }

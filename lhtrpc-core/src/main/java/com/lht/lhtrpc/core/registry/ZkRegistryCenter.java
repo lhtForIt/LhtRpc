@@ -1,7 +1,7 @@
 package com.lht.lhtrpc.core.registry;
 
 import com.lht.lhtrpc.core.api.ChangedListener;
-import com.lht.lhtrpc.core.api.LhtRpcException;
+import com.lht.lhtrpc.core.api.RpcException;
 import com.lht.lhtrpc.core.api.RegistryCenter;
 import com.lht.lhtrpc.core.meta.InstanceMeta;
 import com.lht.lhtrpc.core.meta.ServiceMeta;
@@ -64,7 +64,7 @@ public class ZkRegistryCenter implements RegistryCenter {
             log.info("===> register to zk " + "/" + service.toPath() + " /" + instance);
             client.create().withMode(CreateMode.EPHEMERAL).forPath(instancePath, "provider".getBytes());
         } catch (Exception e) {
-            throw new LhtRpcException(e);
+            throw new RpcException(e);
         }
     }
 
@@ -81,7 +81,7 @@ public class ZkRegistryCenter implements RegistryCenter {
             log.info("===> unregister to zk " + "/" + service.toPath() + " /" + instance);
             client.delete().quietly().forPath(instancePath);//quietly如果没有节点则不抛出异常
         } catch (Exception e) {
-            throw new LhtRpcException(e);
+            throw new RpcException(e);
         }
     }
 
@@ -95,7 +95,7 @@ public class ZkRegistryCenter implements RegistryCenter {
             nodes.forEach(System.out::println);
             return mapInstance(nodes);
         } catch (Exception e) {
-            throw new LhtRpcException(e);
+            throw new RpcException(e);
         }
     }
 

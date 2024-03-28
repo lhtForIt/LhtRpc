@@ -35,10 +35,6 @@ public class ConsumerBootStrap implements ApplicationContextAware, EnvironmentAw
 
     private Map<String, Object> stub = new HashMap<>();
 
-    @Autowired
-    //根据某些策略配置httpInvoker实现类,可以从配置文件设置，如果没有设置默认使用OkHttpInvoker
-    private HttpInvoker httpInvoker;
-
     @Value("${app.id}")
     private String app;
 
@@ -47,6 +43,16 @@ public class ConsumerBootStrap implements ApplicationContextAware, EnvironmentAw
 
     @Value("${app.env}")
     private String env;
+
+    @Value("${app.retry}")
+    private String retry;
+
+    @Value("${app.okhttp.connectTimeout}")
+    private String connectTimeout;
+    @Value("${app.okhttp.readTimeout}")
+    private String readTimeout;
+    @Value("${app.okhttp.writeTimeout}")
+    private String writeTimeout;
 
     /**
      * 为什么provider直接用@PostConstruct就能初始化桩的集合，而consumer不能？
@@ -68,6 +74,11 @@ public class ConsumerBootStrap implements ApplicationContextAware, EnvironmentAw
         context.setRouter(router);
         context.setLoadBalancer(loadBalancer);
         context.setFilters(filters);
+        context.getParamerters().put("app.retry", retry);
+        context.getParamerters().put("app.okhttp.connectTimeout", connectTimeout);
+        context.getParamerters().put("app.okhttp.readTimeout", readTimeout);
+        context.getParamerters().put("app.okhttp.writeTimeout", writeTimeout);
+
 
         String[] names = applicationContext.getBeanDefinitionNames();
         for (String beanName : names) {
@@ -104,7 +115,7 @@ public class ConsumerBootStrap implements ApplicationContextAware, EnvironmentAw
     }
 
     private Object createConsumer(Class<?> service, RpcContext rpcContext, List<InstanceMeta> providers) {
-        return Proxy.newProxyInstance(service.getClassLoader(), new Class[]{service}, new LhtInvocationHandler(service, rpcContext, providers, httpInvoker));
+        return Proxy.newProxyInstance(service.getClassLoader(), new Class[]{service}, new LhtInvocationHandler(service, rpcContext, providers));
     }
 
 

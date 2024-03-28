@@ -57,13 +57,13 @@ public class ConsumerConfig {
         return Router.Default;
     }
 
-    @Bean
-    public Filter filter() {return new CacheFilter();}
+//    @Bean
+//    public Filter filter() {return new CacheFilter();}
 //    @Bean
 //    public Filter filter() {return new MockFilter();}
 
     @Bean
-    public HttpInvoker httpInvoker() {return new OkHttpInvoker();}
+    public Filter filter() {return Filter.Default;}
 
 
     //注册中心自动启动和销毁通过initMethod和destroyMethod

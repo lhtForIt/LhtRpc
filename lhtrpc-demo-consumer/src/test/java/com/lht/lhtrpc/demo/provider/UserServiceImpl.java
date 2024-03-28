@@ -75,4 +75,9 @@ public class UserServiceImpl implements UserService {
     public List<User> getList(List<User> list) {
         return list;
     }
+
+    @Override
+    public User find(int timeout) {
+        return null;
+    }
 }

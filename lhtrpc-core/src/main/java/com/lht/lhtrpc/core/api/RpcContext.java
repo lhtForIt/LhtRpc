@@ -3,7 +3,9 @@ package com.lht.lhtrpc.core.api;
 import com.lht.lhtrpc.core.meta.InstanceMeta;
 import lombok.Data;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Leo liang [lhtshent@gmail.com]
@@ -20,5 +22,11 @@ public class RpcContext {
     private Router<InstanceMeta> router;
     private LoadBalancer<InstanceMeta> loadBalancer;
     private List<Filter> filters;
+    //动态传参，玩花活
+    private Map<String, String> paramerters = new HashMap<>();
+    // kkrpc.color = gray
+    // kkrpc.gtrace_id
+    // gw -> service1 ->  service2(跨线程传递) ...
+    // http headers
 
 }
