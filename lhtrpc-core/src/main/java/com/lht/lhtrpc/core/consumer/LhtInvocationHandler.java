@@ -1,9 +1,6 @@
 package com.lht.lhtrpc.core.consumer;
 
-import com.lht.lhtrpc.core.api.Filter;
-import com.lht.lhtrpc.core.api.RpcContext;
-import com.lht.lhtrpc.core.api.RpcRequest;
-import com.lht.lhtrpc.core.api.RpcResponse;
+import com.lht.lhtrpc.core.api.*;
 import com.lht.lhtrpc.core.meta.InstanceMeta;
 import com.lht.lhtrpc.core.utils.MethodUtils;
 import com.lht.lhtrpc.core.utils.TypeUtils;
@@ -83,7 +80,11 @@ public class LhtInvocationHandler implements InvocationHandler {
             return TypeUtils.buildResponse(method, rpcResponse);
         } else {
             //异常不能直接返回，会类转换失败，直接抛出去就好，抛的时候可以控制，是所有堆栈信息都返回去，还是只返回主要信息，这里只返回主要信息
-            throw rpcResponse.getEx();
+            Exception exception = rpcResponse.getEx();
+            if (exception instanceof LhtRpcException ex) {
+                throw ex;
+            }
+            throw new LhtRpcException(exception, LhtRpcException.UnKnowEx);
         }
     }
 }

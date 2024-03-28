@@ -54,8 +54,12 @@ public class LhtrpcDemoConsumerApplication {
 
 
 			//mock异常调用
-//			User user1 = userService.findById(300);
-//			System.out.println("return userService.findById(300)=" + user1);
+			try {
+				User user4 = userService.findById(300);
+				System.out.println("return userService.findById(300)=" + user4);
+			}catch (Exception e){
+				System.out.println("=====>exception: " + e.getMessage());
+			}
 
 			//被屏蔽
 			String string = orderService.toString();
