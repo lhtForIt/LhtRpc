@@ -1,0 +1,18 @@
+server:
+  port: 8081
+
+lhtrpc:
+  zkServer: localhost:2182
+  zkRoot: lhtrpc
+  package: com.lht.lhtrpc.demo.provider
+
+app:
+  id: lht-app
+  namespace: public
+  env: dev
+
+
+logging:
+  level:
+    root: error
+    com.lht.lhtrpc: info

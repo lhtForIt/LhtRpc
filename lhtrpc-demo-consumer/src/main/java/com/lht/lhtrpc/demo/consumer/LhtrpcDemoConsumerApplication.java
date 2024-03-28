@@ -1,8 +1,6 @@
 package com.lht.lhtrpc.demo.consumer;
 
 import com.lht.lhtrpc.core.annotation.LhtConsumer;
-import com.lht.lhtrpc.core.api.RpcRequest;
-import com.lht.lhtrpc.core.api.RpcResponse;
 import com.lht.lhtrpc.core.consumer.ConsumerConfig;
 import com.lht.lhtrpc.demo.api.Order;
 import com.lht.lhtrpc.demo.api.OrderService;
@@ -13,13 +11,11 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
