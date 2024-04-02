@@ -12,9 +12,9 @@ app:
   env: dev
   retry: 3
   okhttp:
-    connectTimeout: 3000
-    readTimeout: 3000
-    writeTimeout: 3000
+    connectTimeout: 1000
+    readTimeout: 1000
+    writeTimeout: 1000
 
 logging:
   level:

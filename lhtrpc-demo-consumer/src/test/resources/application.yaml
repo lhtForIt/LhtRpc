@@ -11,6 +11,11 @@ app:
   id: lht-app
   namespace: public
   env: dev
+  retry: 3
+  okhttp:
+    connectTimeout: 1000
+    readTimeout: 1000
+    writeTimeout: 1000
 
 logging:
   level:

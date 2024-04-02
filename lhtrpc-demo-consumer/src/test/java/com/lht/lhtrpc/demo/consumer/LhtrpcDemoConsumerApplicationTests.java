@@ -30,8 +30,8 @@ class LhtrpcDemoConsumerApplicationTests {
 
 		zkServer.start();
 		context = SpringApplication.run(LhtrpcDemoProviderApplication.class,
-				"--server.port=8094", "--kkrpc.zkServer=localhost:2182",
-				"--logging.level.cn.kimmking.kkrpc=info");
+				"--server.port=8094", "--lhtrpc.zkServer=localhost:2182",
+				"--logging.level.com.lht.lhtrpc=info");
 	}
 
 	@Test

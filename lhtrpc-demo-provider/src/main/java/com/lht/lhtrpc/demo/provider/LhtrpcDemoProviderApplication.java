@@ -6,6 +6,7 @@ import com.lht.lhtrpc.core.provider.ProviderBootStrap;
 import com.lht.lhtrpc.core.provider.ProviderConfig;
 import com.lht.lhtrpc.core.provider.ProviderInvoker;
 import com.lht.lhtrpc.core.utils.MethodUtils;
+import com.lht.lhtrpc.demo.api.User;
 import com.lht.lhtrpc.demo.api.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationRunner;
@@ -15,6 +16,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @SpringBootApplication
@@ -30,13 +32,23 @@ public class LhtrpcDemoProviderApplication {
     @Autowired
     private ProviderInvoker providerInvoker;
 
+    @Autowired
+    private UserService userService;
+
     //利用http+json实现序列化
     @RequestMapping("/")
     public RpcResponse invoke(@RequestBody RpcRequest request){
         return providerInvoker.invokeRequest(request);
     }
 
-
+    @RequestMapping("/port")
+    public RpcResponse<String> setPorts(@RequestParam("ports") String ports) {
+        userService.setPorts(ports);
+        RpcResponse<String> response = new RpcResponse();
+        response.setStatus(true);
+        response.setData("OK:" + ports);
+        return response;
+    }
 
     @Bean
     ApplicationRunner providerRun(){

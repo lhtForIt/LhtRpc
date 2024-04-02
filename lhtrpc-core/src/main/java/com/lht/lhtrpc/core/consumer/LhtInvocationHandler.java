@@ -2,6 +2,7 @@ package com.lht.lhtrpc.core.consumer;
 
 import com.lht.lhtrpc.core.api.*;
 import com.lht.lhtrpc.core.consumer.http.OkHttpInvoker;
+import com.lht.lhtrpc.core.governance.SlidingTimeWindow;
 import com.lht.lhtrpc.core.meta.InstanceMeta;
 import com.lht.lhtrpc.core.utils.MethodUtils;
 import com.lht.lhtrpc.core.utils.TypeUtils;
@@ -11,7 +12,14 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.net.SocketTimeoutException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 消费端动态代理处理类
@@ -23,10 +31,15 @@ public class LhtInvocationHandler implements InvocationHandler {
 
 
     private Class<?> service;
-    private List<InstanceMeta> providers;
-
+    private final List<InstanceMeta> providers;
+    private List<InstanceMeta> isolateProviders = new ArrayList<>();
+    private final List<InstanceMeta> halfOpenProviders = new ArrayList<>();
     private RpcContext context;
     private HttpInvoker httpInvoker;
+
+    private Map<String, SlidingTimeWindow> windows = new ConcurrentHashMap<>();
+
+    private ScheduledExecutorService executor;
 
     public LhtInvocationHandler(Class<?> service, RpcContext context, List<InstanceMeta> providers) {
         this.service = service;
@@ -36,6 +49,15 @@ public class LhtInvocationHandler implements InvocationHandler {
         int writeTimeout = Integer.parseInt(context.getParamerters().getOrDefault("app.okhttp.writeTimeout", "1000"));
         int connectTimeout = Integer.parseInt(context.getParamerters().getOrDefault("app.okhttp.connectTimeout", "1000"));
         this.httpInvoker = new OkHttpInvoker(readTimeout, writeTimeout, connectTimeout);
+        executor = Executors.newScheduledThreadPool(1);
+        executor.scheduleWithFixedDelay(this::halfOpen, 10, 60, TimeUnit.SECONDS);
+    }
+
+    private void halfOpen() {
+        log.debug("========> half open isolateProviders: {}", isolateProviders);
+        halfOpenProviders.clear();
+        log.debug("========> after half open clear halfOpenProviders={}, isolateProviders={} ", halfOpenProviders, isolateProviders);
+        halfOpenProviders.addAll(isolateProviders);
     }
 
     @Override
@@ -69,13 +91,42 @@ public class LhtInvocationHandler implements InvocationHandler {
                     }
                 }
 
-                List<InstanceMeta> nodes = context.getRouter().route(providers);
-                InstanceMeta node = context.getLoadBalancer().choose(nodes);
-                String url = node.toUrl();
-                log.debug("loadBalancer.choose(urls) ==> " + url);
+                InstanceMeta instance = null;
 
-                RpcResponse rpcResponse = httpInvoker.post(rpcRequest, url);
-                Object result = castToResult(method, rpcResponse);
+                synchronized (halfOpenProviders){
+                    log.debug("halfOpenProviders={}", halfOpenProviders);
+                    if (halfOpenProviders.isEmpty()) {
+                        List<InstanceMeta> nodes = context.getRouter().route(providers);
+                        instance = context.getLoadBalancer().choose(nodes);
+                        log.debug("loadBalancer.choose(urls) ==> {}", instance);
+                    } else {
+                        instance = halfOpenProviders.remove(0);
+                        log.debug("check alive instance ===> {}", instance);
+                    }
+                }
+
+
+                RpcResponse rpcResponse = null;
+                Object result = null;
+                String url = instance.toUrl();
+                try {
+                    rpcResponse = httpInvoker.post(rpcRequest, url);
+                    result = castToResult(method, rpcResponse);
+                }catch(Exception e){
+//                    synchronized (isolateProviders){
+                        tryIsolate(url, instance);
+//                    }
+                    throw e;
+                }
+
+                synchronized (providers){
+                    if (!providers.contains(instance)) {
+                        isolateProviders.remove(instance);
+                        providers.add(instance);
+                        log.debug("instance {} is recovered, isolateProviders={}, providers={}", instance, isolateProviders, providers);
+                    }
+                }
+
 
                 for (Filter filter : context.getFilters()) {
                     Object filterResult = filter.postfilter(rpcRequest, rpcResponse, result);
@@ -94,6 +145,31 @@ public class LhtInvocationHandler implements InvocationHandler {
 
         return null;
 
+    }
+
+    private void tryIsolate(String url, InstanceMeta instance) {
+        // 故障的规则统计和隔离,
+        // 每一次异常，记录一次，统计30s的异常数
+        // 用一个环形数组统计一定时间的异常数，这里一个数组下标对应1s，默认30s，后面会拿到sum的值就是30s总的异常数
+        SlidingTimeWindow window = windows.computeIfAbsent(url, t -> new SlidingTimeWindow());
+        window.record(System.currentTimeMillis());
+        log.debug("instance {} in window with {}", url, window.getSum());
+
+        //发生10次，就做故障隔离
+        //如果多次调用，30s内超过10次，这里isolate同一节点会被隔离多次，需要判断没在isolate里面才添加，或者用set
+        if (window.getSum()>=10) {
+            isolate(instance);
+        }
+    }
+
+    private void isolate(InstanceMeta instance) {
+        log.debug("==> isolate instance {}", instance);
+        providers.remove(instance);
+        log.debug("==> providers = {}", providers);
+        if (!isolateProviders.contains(instance)) {
+            isolateProviders.add(instance);
+        }
+        log.debug("==> isolateProviders = {}", isolateProviders);
     }
 
     @Nullable

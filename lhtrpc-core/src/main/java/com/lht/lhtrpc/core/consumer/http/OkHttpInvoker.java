@@ -46,7 +46,7 @@ public class OkHttpInvoker implements HttpInvoker {
             RpcResponse rpcResponse = JSON.parseObject(responseJson, RpcResponse.class);
             return rpcResponse;
         } catch (IOException e) {
-            e.printStackTrace();
+//            e.printStackTrace();
             throw new RuntimeException(e);
         }
     }

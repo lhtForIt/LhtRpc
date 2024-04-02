@@ -1,12 +1,14 @@
 package com.lht.lhtrpc.demo.provider;
 
 import com.lht.lhtrpc.core.annotation.LhtProvider;
+import com.lht.lhtrpc.core.api.RpcResponse;
 import com.lht.lhtrpc.demo.api.User;
 import com.lht.lhtrpc.demo.api.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -79,7 +81,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User find(int timeout) {
         String port = environment.getProperty("server.port");
-        if ("8081".equals(port)) {
+        if (Arrays.stream(ports.split(",")).anyMatch(p -> p.equals(port))) {
             try {
                 Thread.sleep(timeout);
             } catch (InterruptedException e) {
@@ -88,4 +90,12 @@ public class UserServiceImpl implements UserService {
         }
         return new User(123, "Lht-" + port + "_" + System.currentTimeMillis());
     }
+
+    private String ports = "8081,8094";
+    @Override
+    public void setPorts(String ports) {
+        this.ports = ports;
+    }
+
+
 }
