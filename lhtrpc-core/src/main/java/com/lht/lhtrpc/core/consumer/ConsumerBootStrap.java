@@ -75,6 +75,7 @@ public class ConsumerBootStrap implements ApplicationContextAware, EnvironmentAw
         context.setLoadBalancer(loadBalancer);
         context.setFilters(filters);
         context.getParamerters().put("app.retry", retry);
+//        context.getParamerters().put("app.grayRatio", grayRatio);
         context.getParamerters().put("app.okhttp.connectTimeout", connectTimeout);
         context.getParamerters().put("app.okhttp.readTimeout", readTimeout);
         context.getParamerters().put("app.okhttp.writeTimeout", writeTimeout);

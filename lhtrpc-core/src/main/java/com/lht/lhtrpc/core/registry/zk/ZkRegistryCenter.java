@@ -1,5 +1,7 @@
 package com.lht.lhtrpc.core.registry.zk;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.lht.lhtrpc.core.registry.ChangedListener;
 import com.lht.lhtrpc.core.api.RpcException;
 import com.lht.lhtrpc.core.api.RegistryCenter;
@@ -18,6 +20,7 @@ import org.springframework.beans.factory.annotation.Value;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -63,12 +66,12 @@ public class ZkRegistryCenter implements RegistryCenter {
         try {
             //创建服务持久化节点
             if (client.checkExists().forPath(servicePath) == null) {
-                client.create().withMode(CreateMode.PERSISTENT).forPath(servicePath, "service".getBytes());
+                client.create().withMode(CreateMode.PERSISTENT).forPath(servicePath, service.toMetas().getBytes());
             }
             //创建实例的临时性节点
             String instancePath = servicePath + "/" + instance.toPath();
             log.info("===> register to zk " + "/" + service.toPath() + " /" + instance);
-            client.create().withMode(CreateMode.EPHEMERAL).forPath(instancePath, "provider".getBytes());
+            client.create().withMode(CreateMode.EPHEMERAL).forPath(instancePath, instance.toMetas().getBytes());
         } catch (Exception e) {
             throw new RpcException(e);
         }
@@ -99,16 +102,30 @@ public class ZkRegistryCenter implements RegistryCenter {
             List<String> nodes = client.getChildren().forPath(servicePath);
             log.info("===> fetch all to zk " + servicePath);
             nodes.forEach(System.out::println);
-            return mapInstance(nodes);
+            return mapInstance(nodes, servicePath);
         } catch (Exception e) {
             throw new RpcException(e);
         }
     }
 
-    private static List<InstanceMeta> mapInstance(List<String> nodes) {
+    private List<InstanceMeta> mapInstance(List<String> nodes,String servicePath) {
         return nodes.stream().map(d -> {
             String[] s = d.split("_");
-            return InstanceMeta.http(s[0], Integer.valueOf(s[1]));
+            InstanceMeta instance = InstanceMeta.http(s[0], Integer.valueOf(s[1]));
+            log.debug(" instance : {}", instance.toUrl());
+            String nodePath = servicePath + "/" + d;
+            byte[] bytes;
+            try {
+                bytes = client.getData().forPath(nodePath);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            Map<String, Object> params = JSON.parseObject(new String(bytes));
+            params.forEach((k,v)->{
+                log.debug("{} -> {}", k, v);
+                instance.getParameters().put(k, v == null ? null : v.toString());
+            });
+            return instance;
         }).collect(Collectors.toList());
     }
 

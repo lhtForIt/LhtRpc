@@ -37,7 +37,7 @@ public class LhtInvocationHandler implements InvocationHandler {
     private RpcContext context;
     private HttpInvoker httpInvoker;
 
-    private Map<String, SlidingTimeWindow> windows = new ConcurrentHashMap<>();
+    private Map<String, SlidingTimeWindow> windows = new HashMap<>();
 
     private ScheduledExecutorService executor;
 
@@ -113,9 +113,20 @@ public class LhtInvocationHandler implements InvocationHandler {
                     rpcResponse = httpInvoker.post(rpcRequest, url);
                     result = castToResult(method, rpcResponse);
                 }catch(Exception e){
-//                    synchronized (isolateProviders){
-                        tryIsolate(url, instance);
-//                    }
+                    synchronized (windows){
+                        // 故障的规则统计和隔离,
+                        // 每一次异常，记录一次，统计30s的异常数
+                        // 用一个环形数组统计一定时间的异常数，这里一个数组下标对应1s，默认30s，后面会拿到sum的值就是30s总的异常数
+                        SlidingTimeWindow window = windows.computeIfAbsent(url, t -> new SlidingTimeWindow());
+                        window.record(System.currentTimeMillis());
+                        log.debug("instance {} in window with {}", url, window.getSum());
+
+                        //发生10次，就做故障隔离
+                        //如果多次调用，30s内超过10次，这里isolate同一节点会被隔离多次，需要判断没在isolate里面才添加，或者用set
+                        if (window.getSum()>=10) {
+                            isolate(instance);
+                        }
+                    }
                     throw e;
                 }
 
@@ -166,9 +177,9 @@ public class LhtInvocationHandler implements InvocationHandler {
         log.debug("==> isolate instance {}", instance);
         providers.remove(instance);
         log.debug("==> providers = {}", providers);
-        if (!isolateProviders.contains(instance)) {
+//        if (!isolateProviders.contains(instance)) {
             isolateProviders.add(instance);
-        }
+//        }
         log.debug("==> isolateProviders = {}", isolateProviders);
     }
 

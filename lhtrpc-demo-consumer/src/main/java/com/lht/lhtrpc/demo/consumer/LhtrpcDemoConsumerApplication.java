@@ -1,11 +1,14 @@
 package com.lht.lhtrpc.demo.consumer;
 
 import com.lht.lhtrpc.core.annotation.LhtConsumer;
+import com.lht.lhtrpc.core.api.Router;
+import com.lht.lhtrpc.core.cluster.GrayRouter;
 import com.lht.lhtrpc.core.consumer.ConsumerConfig;
 import com.lht.lhtrpc.demo.api.Order;
 import com.lht.lhtrpc.demo.api.OrderService;
 import com.lht.lhtrpc.demo.api.User;
 import com.lht.lhtrpc.demo.api.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -46,6 +49,14 @@ public class LhtrpcDemoConsumerApplication {
         return userService.find(timeout);
     }
 
+    @Autowired
+    private Router router;
+
+    @RequestMapping("/gray")
+    public String gray(@RequestParam("grayRatio") int grayRatio) {
+        ((GrayRouter) router).setGrayRatio(grayRatio);
+        return "OK - new grayRatio is " + grayRatio;
+    }
 
     @Bean
     public ApplicationRunner consumerRunner() {

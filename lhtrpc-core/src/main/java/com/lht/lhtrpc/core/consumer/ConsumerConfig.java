@@ -4,6 +4,7 @@ import com.lht.lhtrpc.core.api.Filter;
 import com.lht.lhtrpc.core.api.LoadBalancer;
 import com.lht.lhtrpc.core.api.RegistryCenter;
 import com.lht.lhtrpc.core.api.Router;
+import com.lht.lhtrpc.core.cluster.GrayRouter;
 import com.lht.lhtrpc.core.cluster.RandomRibonLoadBalancer;
 import com.lht.lhtrpc.core.registry.zk.ZkRegistryCenter;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +25,9 @@ public class ConsumerConfig {
 
     @Value("${lhtrpc.providers}")
     private String service;
+
+    @Value("${app.grayRatio}")
+    private int grayRatio;
 
     @Bean
     public ConsumerBootStrap initConsumerBootStrap() {
@@ -52,7 +56,7 @@ public class ConsumerConfig {
 
     @Bean
     public Router router() {
-        return Router.Default;
+        return new GrayRouter(grayRatio);
     }
 
 //    @Bean

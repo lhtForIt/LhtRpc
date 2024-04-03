@@ -56,6 +56,10 @@ public class ProviderBootStrap implements ApplicationContextAware {
     @Value("${lhtrpc.package:}")
     private String packages;
 
+
+    @Value("#{${app.metas}}")
+    private Map<String,String> metas;
+
     private RegistryCenter rc;
 
 
@@ -81,6 +85,7 @@ public class ProviderBootStrap implements ApplicationContextAware {
     public void start() {
         String ip = InetAddress.getLocalHost().getHostAddress();
         instance = InstanceMeta.http(ip, Integer.parseInt(port));
+        instance.getParameters().putAll(this.metas);
         rc.start();
         skeleton.keySet().forEach(this::registerService);
     }

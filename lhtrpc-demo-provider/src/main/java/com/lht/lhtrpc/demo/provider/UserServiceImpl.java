@@ -29,7 +29,7 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("产生异常了--------");
         }
         String port = environment.getProperty("server.port");
-        return new User(id, "Lht-" + port + "_" + System.currentTimeMillis());
+        return new User(id, "Lht-V5-" + port + "_" + System.currentTimeMillis());
     }
 
     @Override

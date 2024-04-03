@@ -2,8 +2,13 @@
 GET http://localhost:8088/time?timeout=1000
 
 ###修改超时端口
-GET http://localhost:8081/port?ports=8080,8094
+GET http://localhost:8081/port?ports=8081,8094
 
+###修改灰度率
+GET http://localhost:8088/gray?grayRatio=0
+
+###调用
+GET http://localhost:8088/api?id=100
 
 ###
 POST http://localhost:8081/

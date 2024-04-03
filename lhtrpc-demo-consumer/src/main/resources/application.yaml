@@ -11,6 +11,7 @@ app:
   namespace: public
   env: dev
   retry: 3
+  grayRatio: 20 # 0~100
   okhttp:
     connectTimeout: 1000
     readTimeout: 1000
