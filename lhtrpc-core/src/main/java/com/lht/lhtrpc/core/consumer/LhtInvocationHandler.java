@@ -114,18 +114,7 @@ public class LhtInvocationHandler implements InvocationHandler {
                     result = castToResult(method, rpcResponse);
                 }catch(Exception e){
                     synchronized (windows){
-                        // 故障的规则统计和隔离,
-                        // 每一次异常，记录一次，统计30s的异常数
-                        // 用一个环形数组统计一定时间的异常数，这里一个数组下标对应1s，默认30s，后面会拿到sum的值就是30s总的异常数
-                        SlidingTimeWindow window = windows.computeIfAbsent(url, t -> new SlidingTimeWindow());
-                        window.record(System.currentTimeMillis());
-                        log.debug("instance {} in window with {}", url, window.getSum());
-
-                        //发生10次，就做故障隔离
-                        //如果多次调用，30s内超过10次，这里isolate同一节点会被隔离多次，需要判断没在isolate里面才添加，或者用set
-                        if (window.getSum()>=10) {
-                            isolate(instance);
-                        }
+                        tryIsolate(url, instance);
                     }
                     throw e;
                 }
