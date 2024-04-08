@@ -1,9 +1,11 @@
 package com.lht.lhtrpc.demo.provider;
 
 import com.lht.lhtrpc.core.annotation.LhtProvider;
+import com.lht.lhtrpc.core.api.RpcContext;
 import com.lht.lhtrpc.core.api.RpcResponse;
 import com.lht.lhtrpc.demo.api.User;
 import com.lht.lhtrpc.demo.api.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -17,6 +19,7 @@ import java.util.Map;
  * @date 2024/03/07
  */
 @Component
+@Slf4j
 @LhtProvider
 public class UserServiceImpl implements UserService {
 
@@ -95,6 +98,13 @@ public class UserServiceImpl implements UserService {
     @Override
     public void setPorts(String ports) {
         this.ports = ports;
+    }
+
+    @Override
+    public String echoParamsValue(String key) {
+        log.debug(" ====>> RpcContext.ContextParameters: ");
+        RpcContext.ContextParameters.get().forEach((k, v) -> log.debug("key: {}, value: {}", k, v));
+        return RpcContext.getParameter(key);
     }
 
 

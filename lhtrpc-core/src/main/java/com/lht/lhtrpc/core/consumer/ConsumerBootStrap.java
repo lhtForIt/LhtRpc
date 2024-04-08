@@ -35,25 +35,6 @@ public class ConsumerBootStrap implements ApplicationContextAware, EnvironmentAw
 
     private Map<String, Object> stub = new HashMap<>();
 
-    @Value("${app.id}")
-    private String app;
-
-    @Value("${app.namespace}")
-    private String namespace;
-
-    @Value("${app.env}")
-    private String env;
-
-    @Value("${app.retry}")
-    private String retry;
-
-    @Value("${app.okhttp.connectTimeout}")
-    private String connectTimeout;
-    @Value("${app.okhttp.readTimeout}")
-    private String readTimeout;
-    @Value("${app.okhttp.writeTimeout}")
-    private String writeTimeout;
-
     /**
      * 为什么provider直接用@PostConstruct就能初始化桩的集合，而consumer不能？
      * 因为provider其实只需要找到bean的类定义即可，只会用到类定义相关信息。
@@ -66,20 +47,8 @@ public class ConsumerBootStrap implements ApplicationContextAware, EnvironmentAw
      */
     public void start() {
 
-        LoadBalancer<InstanceMeta> loadBalancer = applicationContext.getBean(LoadBalancer.class);
-        Router<InstanceMeta> router = applicationContext.getBean(Router.class);
-        List<Filter> filters = applicationContext.getBeansOfType(Filter.class).values().stream().toList();
         RegistryCenter rc = applicationContext.getBean(RegistryCenter.class);
-        RpcContext context = new RpcContext();
-        context.setRouter(router);
-        context.setLoadBalancer(loadBalancer);
-        context.setFilters(filters);
-        context.getParamerters().put("app.retry", retry);
-//        context.getParamerters().put("app.grayRatio", grayRatio);
-        context.getParamerters().put("app.okhttp.connectTimeout", connectTimeout);
-        context.getParamerters().put("app.okhttp.readTimeout", readTimeout);
-        context.getParamerters().put("app.okhttp.writeTimeout", writeTimeout);
-
+        RpcContext context = applicationContext.getBean(RpcContext.class);
 
         String[] names = applicationContext.getBeanDefinitionNames();
         for (String beanName : names) {
@@ -102,9 +71,9 @@ public class ConsumerBootStrap implements ApplicationContextAware, EnvironmentAw
     private Object createFromRegistry(Class<?> service, RpcContext context, RegistryCenter rc) {
         String serviceName = service.getCanonicalName();
         ServiceMeta serviceMeta = ServiceMeta.builder()
-                .app(app)
-                .namespace(namespace)
-                .env(env)
+                .app(context.getParamerters().get("app.id"))
+                .namespace(context.getParamerters().get("app.namespace"))
+                .env(context.getParamerters().get("app.env"))
                 .name(serviceName)
                 .build();
         List<InstanceMeta> providers = rc.fetchAll(serviceMeta);

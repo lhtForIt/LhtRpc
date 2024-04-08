@@ -2,11 +2,8 @@ package com.lht.lhtrpc.demo.provider;
 
 import com.lht.lhtrpc.core.api.RpcRequest;
 import com.lht.lhtrpc.core.api.RpcResponse;
-import com.lht.lhtrpc.core.provider.ProviderBootStrap;
-import com.lht.lhtrpc.core.provider.ProviderConfig;
+import com.lht.lhtrpc.core.config.ProviderConfig;
 import com.lht.lhtrpc.core.provider.ProviderInvoker;
-import com.lht.lhtrpc.core.utils.MethodUtils;
-import com.lht.lhtrpc.demo.api.User;
 import com.lht.lhtrpc.demo.api.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationRunner;

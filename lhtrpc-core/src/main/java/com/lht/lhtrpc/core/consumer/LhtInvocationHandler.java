@@ -16,13 +16,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
  * 消费端动态代理处理类
+ *
  * @author Leo
  * @date 2024/03/11
  */
@@ -48,9 +48,11 @@ public class LhtInvocationHandler implements InvocationHandler {
         int readTimeout = Integer.parseInt(context.getParamerters().getOrDefault("app.okhttp.readTimeout", "1000"));
         int writeTimeout = Integer.parseInt(context.getParamerters().getOrDefault("app.okhttp.writeTimeout", "1000"));
         int connectTimeout = Integer.parseInt(context.getParamerters().getOrDefault("app.okhttp.connectTimeout", "1000"));
+        int halfOpenInitialDelay = Integer.parseInt(context.getParamerters().getOrDefault("consumer.halfOpenInitialDelay", "10000"));
+        int halfOpenDelay = Integer.parseInt(context.getParamerters().getOrDefault("consumer.halfOpenDelay", "60000"));
         this.httpInvoker = new OkHttpInvoker(readTimeout, writeTimeout, connectTimeout);
         executor = Executors.newScheduledThreadPool(1);
-        executor.scheduleWithFixedDelay(this::halfOpen, 10, 60, TimeUnit.SECONDS);
+        executor.scheduleWithFixedDelay(this::halfOpen, halfOpenInitialDelay, halfOpenDelay, TimeUnit.SECONDS);
     }
 
     private void halfOpen() {
@@ -75,16 +77,17 @@ public class LhtInvocationHandler implements InvocationHandler {
 
 
         //超时重试，没配置默认不重试
-        int retries = Integer.parseInt(context.getParamerters().getOrDefault("app.retry", "0"));
+        int retries = Integer.parseInt(context.getParamerters().getOrDefault("consumer.retry", "1"));
+        int faultLimit = Integer.parseInt(context.getParamerters().getOrDefault("consumer.faultLimit", "10"));
 
         while (retries-- > 0) {
 
             log.debug("========> retries:" + retries);
 
-            try{
-                //这里用lambdm表达式不能返回，所有用foreach
+            try {
+                //这里用lambda表达式不能返回，所有用foreach
                 for (Filter filter : context.getFilters()) {
-                    Object response=filter.prefilter(rpcRequest);
+                    Object response = filter.prefilter(rpcRequest);
                     if (response != null) {
                         log.debug(filter.getClass().getName() + "===> prefilter: " + response);
                         return response;
@@ -93,7 +96,7 @@ public class LhtInvocationHandler implements InvocationHandler {
 
                 InstanceMeta instance = null;
 
-                synchronized (halfOpenProviders){
+                synchronized (halfOpenProviders) {
                     log.debug("halfOpenProviders={}", halfOpenProviders);
                     if (halfOpenProviders.isEmpty()) {
                         List<InstanceMeta> nodes = context.getRouter().route(providers);
@@ -112,14 +115,14 @@ public class LhtInvocationHandler implements InvocationHandler {
                 try {
                     rpcResponse = httpInvoker.post(rpcRequest, url);
                     result = castToResult(method, rpcResponse);
-                }catch(Exception e){
-                    synchronized (windows){
-                        tryIsolate(url, instance);
+                } catch (Exception e) {
+                    synchronized (windows) {
+                        tryIsolate(url, instance, faultLimit);
                     }
                     throw e;
                 }
 
-                synchronized (providers){
+                synchronized (providers) {
                     if (!providers.contains(instance)) {
                         isolateProviders.remove(instance);
                         providers.add(instance);
@@ -136,7 +139,7 @@ public class LhtInvocationHandler implements InvocationHandler {
                 }
 
                 return result;
-            }catch (RuntimeException e){
+            } catch (RuntimeException e) {
                 if (!(e.getCause() instanceof SocketTimeoutException)) {
                     throw new RpcException(e);
                 }
@@ -147,7 +150,7 @@ public class LhtInvocationHandler implements InvocationHandler {
 
     }
 
-    private void tryIsolate(String url, InstanceMeta instance) {
+    private void tryIsolate(String url, InstanceMeta instance, int faultLimit) {
         // 故障的规则统计和隔离,
         // 每一次异常，记录一次，统计30s的异常数
         // 用一个环形数组统计一定时间的异常数，这里一个数组下标对应1s，默认30s，后面会拿到sum的值就是30s总的异常数
@@ -157,18 +160,17 @@ public class LhtInvocationHandler implements InvocationHandler {
 
         //发生10次，就做故障隔离
         //如果多次调用，30s内超过10次，这里isolate同一节点会被隔离多次，需要判断没在isolate里面才添加，或者用set
-        if (window.getSum()>=10) {
+        if (window.getSum() >= faultLimit) {
             isolate(instance);
         }
     }
 
     private void isolate(InstanceMeta instance) {
         log.debug("==> isolate instance {}", instance);
-        providers.remove(instance);
+        //没有这个元素直接返回，避免重复隔离
+        if (!providers.remove(instance)) return;
         log.debug("==> providers = {}", providers);
-//        if (!isolateProviders.contains(instance)) {
-            isolateProviders.add(instance);
-//        }
+        isolateProviders.add(instance);
         log.debug("==> isolateProviders = {}", isolateProviders);
     }
 
@@ -179,11 +181,12 @@ public class LhtInvocationHandler implements InvocationHandler {
             return TypeUtils.buildResponse(method, rpcResponse);
         } else {
             //异常不能直接返回，会类转换失败，直接抛出去就好，抛的时候可以控制，是所有堆栈信息都返回去，还是只返回主要信息，这里只返回主要信息
-            Exception exception = rpcResponse.getEx();
-            if (exception instanceof RpcException ex) {
-                throw ex;
+            RpcException exception = rpcResponse.getEx();
+            if (exception != null) {
+                log.debug("response error {}", exception);
+                throw exception;
             }
-            throw new RpcException(exception, RpcException.UnKnowEx);
+            throw null;
         }
     }
 }

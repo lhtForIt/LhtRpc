@@ -1,5 +1,6 @@
 package com.lht.lhtrpc.core.provider;
 
+import com.lht.lhtrpc.core.api.RpcContext;
 import com.lht.lhtrpc.core.api.RpcException;
 import com.lht.lhtrpc.core.api.RpcRequest;
 import com.lht.lhtrpc.core.api.RpcResponse;
@@ -11,6 +12,7 @@ import org.springframework.util.MultiValueMap;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -29,11 +31,15 @@ public class ProviderInvoker {
     public RpcResponse invokeRequest(RpcRequest request) {
         log.debug("service值为：" + request.getService());
         List<ProviderMeta> providerMetas = skeleton.get(request.getService());
+        Map<String, String> parameters = request.getParameters();
+        if (!parameters.isEmpty()) {
+            RpcContext.ContextParameters.get().putAll(parameters);
+        }
         RpcResponse rpcResponse = new RpcResponse();
         try {
             ProviderMeta providerMeta = findProviderMeta(request, providerMetas);
             if (providerMeta == null) {
-                rpcResponse.setEx(new RuntimeException("没有找到对应的服务"));
+                rpcResponse.setEx(new RpcException("没有找到对应的服务"));
                 return rpcResponse;
             }
             Method method = providerMeta.getMethod();

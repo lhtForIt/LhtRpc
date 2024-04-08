@@ -2,8 +2,9 @@ package com.lht.lhtrpc.demo.consumer;
 
 import com.lht.lhtrpc.core.annotation.LhtConsumer;
 import com.lht.lhtrpc.core.api.Router;
+import com.lht.lhtrpc.core.api.RpcContext;
 import com.lht.lhtrpc.core.cluster.GrayRouter;
-import com.lht.lhtrpc.core.consumer.ConsumerConfig;
+import com.lht.lhtrpc.core.config.ConsumerConfig;
 import com.lht.lhtrpc.demo.api.Order;
 import com.lht.lhtrpc.demo.api.OrderService;
 import com.lht.lhtrpc.demo.api.User;
@@ -139,6 +140,16 @@ public class LhtrpcDemoConsumerApplication {
         System.out.println("userService.find(800) " + user4);
         System.out.println("userService.find take " + (System.currentTimeMillis() - start) + "ms");
 
+
+        String key_version = "rpc.version";
+        String key_message = "rpc.message";
+        RpcContext.setParameter(key_version, "V2");
+        RpcContext.setParameter(key_message, "it is a test message");
+        String version = userService.echoParamsValue(key_version);
+        String message = userService.echoParamsValue(key_message);
+        System.out.println(" ===> echo parameter from c->p->c: " + key_version + " -> " + version);
+        System.out.println(" ===> echo parameter from c->p->c: " + key_message + " -> " + message);
+        RpcContext.ContextParameters.get().clear();
     }
 
 }

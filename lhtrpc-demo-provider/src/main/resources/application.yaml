@@ -2,21 +2,19 @@ server:
   port: 8081
 
 lhtrpc:
-  zkServer: 192.168.3.100:2181
-  zkRoot: lhtrpc
-  package: com.lht.lhtrpc.demo.provider
-
-app:
-  id: lht-app
-  namespace: public
-  env: dev
-#  metas:
-#    gray: false #灰度
-#    bc: cd #地区
-#    unit: C001 #单元
-  metas: "{dc: 'cd', gray: 'false', unit: 'C001'}" #这种可以直接转化为一个map，传值会更方便
-
-
+  zk:
+    zkServer: 192.168.3.100:2181
+    zkRoot: lhtrpc
+  provider:
+    packages: com.lht.lhtrpc.demo.provider
+    metas:
+      dc: cd
+      gray: false
+      unit: C001
+  app:
+    id: lht-app
+    namespace: public
+    env: dev
 
 logging:
   level:

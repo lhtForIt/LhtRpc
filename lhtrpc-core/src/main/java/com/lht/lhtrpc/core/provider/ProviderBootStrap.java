@@ -2,6 +2,8 @@ package com.lht.lhtrpc.core.provider;
 
 import com.lht.lhtrpc.core.annotation.LhtProvider;
 import com.lht.lhtrpc.core.api.RegistryCenter;
+import com.lht.lhtrpc.core.config.AppConfigProperties;
+import com.lht.lhtrpc.core.config.ProviderConfigProperties;
 import com.lht.lhtrpc.core.meta.InstanceMeta;
 import com.lht.lhtrpc.core.meta.ProviderMeta;
 import com.lht.lhtrpc.core.meta.ServiceMeta;
@@ -41,33 +43,24 @@ public class ProviderBootStrap implements ApplicationContextAware {
 
     private InstanceMeta instance;
 
-    @Value("${server.port}")
-    private String port;
-
-    @Value("${app.id}")
-    private String app;
-
-    @Value("${app.namespace}")
-    private String namespace;
-
-    @Value("${app.env}")
-    private String env;
-
-    @Value("${lhtrpc.package:}")
-    private String packages;
-
-
-    @Value("#{${app.metas}}")
-    private Map<String,String> metas;
-
     private RegistryCenter rc;
 
+    private String port;
+    private AppConfigProperties appConfigProperties;
+    private ProviderConfigProperties providerConfigProperties;
+
+
+    public ProviderBootStrap(String port, AppConfigProperties appConfigProperties, ProviderConfigProperties providerConfigProperties) {
+        this.port = port;
+        this.appConfigProperties = appConfigProperties;
+        this.providerConfigProperties = providerConfigProperties;
+    }
 
     @PostConstruct
     public void init() throws ClassNotFoundException {
 //        Map<String, Object> providers = applicationContext.getBeansWithAnnotation(LhtProvider.class);
         Map<String, Object> providers = new HashMap<>();
-        List<Class<?>> provids = PackageScanUtils.doScan(packages, LhtProvider.class);
+        List<Class<?>> provids = PackageScanUtils.doScan(providerConfigProperties.getPackages(), LhtProvider.class);
         //这里还是使用了@Component注解放到spring容器里，如果想要用一个注解自动将这些bean放到容器，可以自己把类拿到，然后自己动态注册到容器里
         //注意如果要自己手动注册到spring容器里，代码就不能写在这里，需要在Bean还没有实例化之前就注册到容器里，需要实现ImportBeanDefinitionRegistrar，
         //并将扫描代码放到那里面去
@@ -84,8 +77,8 @@ public class ProviderBootStrap implements ApplicationContextAware {
     @SneakyThrows
     public void start() {
         String ip = InetAddress.getLocalHost().getHostAddress();
-        instance = InstanceMeta.http(ip, Integer.parseInt(port));
-        instance.getParameters().putAll(this.metas);
+        instance = InstanceMeta.http(ip, Integer.parseInt(this.port));
+        instance.getParameters().putAll(providerConfigProperties.getMetas());
         rc.start();
         skeleton.keySet().forEach(this::registerService);
     }
@@ -98,9 +91,9 @@ public class ProviderBootStrap implements ApplicationContextAware {
 
     private void unregisterService(String service) {
         ServiceMeta serviceMeta = ServiceMeta.builder()
-                .app(app)
-                .namespace(namespace)
-                .env(env)
+                .app(appConfigProperties.getId())
+                .namespace(appConfigProperties.getNamespace())
+                .env(appConfigProperties.getEnv())
                 .name(service)
                 .build();
         rc.unregister(serviceMeta, instance);
@@ -108,9 +101,9 @@ public class ProviderBootStrap implements ApplicationContextAware {
 
     private void registerService(String service) {
         ServiceMeta serviceMeta = ServiceMeta.builder()
-                .app(app)
-                .namespace(namespace)
-                .env(env)
+                .app(appConfigProperties.getId())
+                .namespace(appConfigProperties.getNamespace())
+                .env(appConfigProperties.getEnv())
                 .name(service)
                 .build();
         rc.register(serviceMeta, instance);

@@ -3,19 +3,20 @@ server:
 
 lhtrpc:
   providers: http://localhost:8081/,http://localhost:8082/,http://localhost:8083/
-  zkServer: 192.168.3.100:2181
-  zkRoot: lhtrpc
-
-app:
-  id: lht-app
-  namespace: public
-  env: dev
-  retry: 3
-  grayRatio: 20 # 0~100
-  okhttp:
-    connectTimeout: 1000
-    readTimeout: 1000
-    writeTimeout: 1000
+  zk:
+    zkServer: 192.168.3.100:2181
+    zkRoot: lhtrpc
+  app:
+    id: lht-app
+    namespace: public
+    env: dev
+  consumer:
+    retry: 3
+    grayRatio: 20 # 0~100
+    okhttp:
+      connectTimeout: 1000
+      readTimeout: 1000
+      writeTimeout: 1000
 
 logging:
   level:

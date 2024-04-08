@@ -29,4 +29,20 @@ public class RpcContext {
     // gw -> service1 ->  service2(跨线程传递) ...
     // http headers
 
+    public static ThreadLocal<Map<String, String>> ContextParameters = ThreadLocal.withInitial(() -> new HashMap<>());
+
+
+    public static String getParameter(String key) {
+        return ContextParameters.get().get(key);
+    }
+
+    public static void setParameter(String key, String value) {
+        ContextParameters.get().put(key, value);
+    }
+
+    public static void removeParameter(String key) {
+        ContextParameters.get().remove(key);
+    }
+
+
 }

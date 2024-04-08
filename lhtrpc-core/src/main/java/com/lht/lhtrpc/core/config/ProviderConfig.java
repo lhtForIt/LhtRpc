@@ -1,12 +1,17 @@
-package com.lht.lhtrpc.core.provider;
+package com.lht.lhtrpc.core.config;
 
 import com.lht.lhtrpc.core.api.RegistryCenter;
+import com.lht.lhtrpc.core.provider.ProviderBootStrap;
+import com.lht.lhtrpc.core.provider.ProviderInvoker;
 import com.lht.lhtrpc.core.registry.zk.ZkRegistryCenter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.Order;
 
 /**
@@ -15,12 +20,25 @@ import org.springframework.core.annotation.Order;
  */
 @Configuration
 @Slf4j
+@Import({AppConfigProperties.class,ProviderConfigProperties.class, ZkConfigProperties.class})
 public class ProviderConfig {
 
 
+    @Value("${server.port}")
+    private String port;
+
+    @Autowired
+    private AppConfigProperties appConfigProperties;
+
+    @Autowired
+    private ProviderConfigProperties providerConfigProperties;
+
+    @Autowired
+    private ZkConfigProperties zkConfigProperties;
+
     @Bean
     public ProviderBootStrap providerBootStrap() {
-        return new ProviderBootStrap();
+        return new ProviderBootStrap(port,appConfigProperties,providerConfigProperties);
     }
 
 
@@ -32,7 +50,7 @@ public class ProviderConfig {
      */
     @Bean //(initMethod = "start", destroyMethod = "stop")
     @ConditionalOnMissingBean
-    public RegistryCenter registryCenterProvider() {return new ZkRegistryCenter();}
+    public RegistryCenter registryCenterProvider() {return new ZkRegistryCenter(zkConfigProperties.getZkServer(), zkConfigProperties.getZkRoot());}
 
     @Bean
     @Order(Integer.MIN_VALUE)
