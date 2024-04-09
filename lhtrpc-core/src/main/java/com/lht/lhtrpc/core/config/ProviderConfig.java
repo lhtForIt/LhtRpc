@@ -25,7 +25,7 @@ import org.springframework.core.annotation.Order;
 public class ProviderConfig {
 
 
-    @Value("${server.port}")
+    @Value("${server.port:8080}")
     private String port;
 
     @Autowired

@@ -18,11 +18,11 @@ public class AppConfigProperties {
 
     //instance
 
-    private String id;
+    private String id = "lht-app";
 
-    private String namespace;
+    private String namespace = "public";
 
-    private String env;
+    private String env = "dev";
 
 
 }

@@ -74,7 +74,7 @@ public class ZkRegistryCenter implements RegistryCenter {
             }
             //创建实例的临时性节点
             String instancePath = servicePath + "/" + instance.toPath();
-            log.info("===> register to zk " + "/" + service.toPath() + " /" + instance);
+            log.info("===> register to zk " + "/" + service.toPath() + "/" + instance);
             client.create().withMode(CreateMode.EPHEMERAL).forPath(instancePath, instance.toMetas().getBytes());
         } catch (Exception e) {
             throw new RpcException(e);

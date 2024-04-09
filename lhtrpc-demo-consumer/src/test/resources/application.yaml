@@ -1,23 +1,23 @@
 server:
-  port: 8088
+  port: 8089
 
 lhtrpc:
-  providers: http://localhost:8081/,http://localhost:8082/,http://localhost:8083/
-  zkServer: localhost:2182
-  zkRoot: lhtrpc
-  package: com.lht.lhtrpc.demo.provider
-
-app:
-  id: lht-app
-  namespace: public
-  env: dev
-  retry: 3
-  okhttp:
-    connectTimeout: 1000
-    readTimeout: 1000
-    writeTimeout: 1000
+  zk:
+    zkServer: localhost:2182
+    zkRoot: lhtrpc
+  app:
+    id: lht-app
+    namespace: public
+    env: test
+  consumer:
+    retry: 3
+    grayRatio: 20 # 0~100
+    okhttp:
+      connectTimeout: 1000
+      readTimeout: 1000
+      writeTimeout: 1000
 
 logging:
   level:
     root: error
-    com.lht.lhtrpc: info
+    com.lht.lhtrpc: debug
