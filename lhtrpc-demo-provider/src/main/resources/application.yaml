@@ -17,6 +17,7 @@ lhtrpc:
     namespace: public
     env: dev
 
+
 logging:
   level:
     root: error
