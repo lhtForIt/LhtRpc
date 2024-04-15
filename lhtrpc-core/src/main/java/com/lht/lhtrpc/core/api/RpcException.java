@@ -20,6 +20,7 @@ public class RpcException extends RuntimeException {
       */
     public static final String SocketTimeoutEx = "X001-"+"http_invoke_timeout";
     public static final String NoSuchMethod = "X002-"+"method_not_exists";
+    public static final String ExceedLimitEx  = "X003" + "-" + "tps_exceed_limit";
     public static final String UnKnowEx = "Z001-"+"unknown_exception";
 
     public RpcException() {
@@ -41,4 +42,10 @@ public class RpcException extends RuntimeException {
         super(cause);
         this.errCode = errCode;
     }
+
+    public RpcException(String message, String errCode) {
+        super(message);
+        this.errCode = errCode;
+    }
+
 }

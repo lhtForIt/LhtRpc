@@ -2,6 +2,7 @@ package com.lht.lhtrpc.core.provider;
 
 import com.lht.lhtrpc.core.annotation.LhtProvider;
 import com.lht.lhtrpc.core.api.RegistryCenter;
+import com.lht.lhtrpc.core.api.RpcContext;
 import com.lht.lhtrpc.core.config.AppConfigProperties;
 import com.lht.lhtrpc.core.config.ProviderConfigProperties;
 import com.lht.lhtrpc.core.meta.InstanceMeta;

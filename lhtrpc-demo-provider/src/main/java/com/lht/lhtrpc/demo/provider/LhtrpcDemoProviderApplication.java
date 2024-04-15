@@ -1,5 +1,6 @@
 package com.lht.lhtrpc.demo.provider;
 
+import com.lht.lhtrpc.core.api.RpcException;
 import com.lht.lhtrpc.core.api.RpcRequest;
 import com.lht.lhtrpc.core.api.RpcResponse;
 import com.lht.lhtrpc.core.config.ProviderConfig;
@@ -69,6 +70,22 @@ public class LhtrpcDemoProviderApplication {
 
         RpcResponse response1 = springBootTransport.invoke(request1);
         System.out.println("return: "+response1.getData());
+
+
+        //限流测试
+//        System.out.println("Provider >>===[复杂测试：测试流量并发控制]===");
+//        for (int i = 0; i < 120; i++) {
+//            try {
+//                Thread.sleep(1000);
+//                RpcResponse<Object> r = springBootTransport.invoke(request);
+//                System.out.println(i + " ***>>> " +r.getData());
+//            } catch (RpcException e) {
+//                // ignore
+//                System.out.println(i + " ***>>> " +e.getMessage() + " -> " + e.getErrCode());
+//            } catch (InterruptedException e) {
+//                throw new RuntimeException(e);
+//            }
+//        }
     }
 
 

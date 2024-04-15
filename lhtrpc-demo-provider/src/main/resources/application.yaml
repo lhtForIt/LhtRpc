@@ -11,6 +11,7 @@ lhtrpc:
       dc: cd
       gray: false
       unit: C001
+      tc: 10
   app:
     id: lht-app
     namespace: public
