@@ -3,13 +3,13 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>com.lht</groupId>
+		<groupId>io.github.lhtforit</groupId>
 		<artifactId>lhtrpc</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
+		<version>${lhtrpc.version}</version>
 	</parent>
-	<groupId>com.lht</groupId>
+	<groupId>io.github.lhtforit</groupId>
 	<artifactId>lhtrpc-demo-consumer</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>${lhtrpc.version}</version>
 	<name>lhtrpc-demo-consumer</name>
 	<description>lhtrpc-demo-consumer</description>
 
@@ -28,15 +28,15 @@
 	<dependencies>
 
 		<dependency>
-			<groupId>com.lht</groupId>
+			<groupId>io.github.lhtforit</groupId>
 			<artifactId>lhtrpc-demo-api</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>${lhtrpc.version}</version>
 		</dependency>
 
 		<dependency>
-			<groupId>com.lht</groupId>
+			<groupId>io.github.lhtforit</groupId>
 			<artifactId>lhtrpc-core</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>${lhtrpc.version}</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -46,9 +46,9 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.lht</groupId>
+			<groupId>io.github.lhtforit</groupId>
 			<artifactId>lhtrpc-demo-provider</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>${lhtrpc.version}</version>
 			<scope>test</scope>
 		</dependency>
 
