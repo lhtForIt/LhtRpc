@@ -4,6 +4,8 @@ import com.lht.lhtrpc.core.api.RpcContext;
 import com.lht.lhtrpc.core.api.RpcException;
 import com.lht.lhtrpc.core.api.RpcRequest;
 import com.lht.lhtrpc.core.api.RpcResponse;
+import com.lht.lhtrpc.core.config.ConsumerProperties;
+import com.lht.lhtrpc.core.config.ProviderProperties;
 import com.lht.lhtrpc.core.governance.SlidingTimeWindow;
 import com.lht.lhtrpc.core.meta.ProviderMeta;
 import com.lht.lhtrpc.core.utils.TypeUtils;
@@ -12,13 +14,10 @@ import org.springframework.util.MultiValueMap;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.logging.Handler;
 
 /**
  * @author Leo
@@ -29,13 +28,11 @@ public class ProviderInvoker {
 
     private MultiValueMap<String, ProviderMeta> skeleton;
     private final ConcurrentHashMap<String, SlidingTimeWindow> windows = new ConcurrentHashMap<>();
-    private int trafficControl;
-    private Map<String, String> metas;
+    private final ProviderProperties providerProperties;
 
     public ProviderInvoker(ProviderBootStrap providerBootStrap) {
         this.skeleton = providerBootStrap.getSkeleton();
-        this.metas = providerBootStrap.getProviderConfigProperties().getMetas();
-        trafficControl = Integer.parseInt(metas.getOrDefault("tc", "20"));
+        this.providerProperties = providerBootStrap.getProviderProperties();
     }
 
     public RpcResponse invokeRequest(RpcRequest request) {
@@ -73,6 +70,7 @@ public class ProviderInvoker {
 
     private void tryTc(String service) throws RpcException{
         SlidingTimeWindow window = windows.computeIfAbsent(service, k -> new SlidingTimeWindow());
+        int trafficControl = Integer.parseInt(providerProperties.getMetas().getOrDefault("tc", "20"));;
         if (window.calcSum() > trafficControl) {
             System.out.println(window);
             throw new RpcException("service " + service + " invoked in 30s/[" +

@@ -1,9 +1,12 @@
 package com.lht.lhtrpc.demo.provider;
 
+import com.ctrip.framework.apollo.spring.annotation.EnableApolloConfig;
 import com.lht.lhtrpc.core.api.RpcException;
 import com.lht.lhtrpc.core.api.RpcRequest;
 import com.lht.lhtrpc.core.api.RpcResponse;
+import com.lht.lhtrpc.core.config.ApolloChangedListener;
 import com.lht.lhtrpc.core.config.ProviderConfig;
+import com.lht.lhtrpc.core.config.ProviderProperties;
 import com.lht.lhtrpc.core.provider.ProviderInvoker;
 import com.lht.lhtrpc.core.transport.SpringBootTransport;
 import com.lht.lhtrpc.demo.api.UserService;
@@ -11,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.context.properties.ConfigurationPropertiesRebinder;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,8 +25,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 @SpringBootApplication
 @RestController
+@EnableApolloConfig
 @Import({ProviderConfig.class})
 public class LhtrpcDemoProviderApplication {
+
 
     public static void main(String[] args) {
         SpringApplication.run(LhtrpcDemoProviderApplication.class, args);
@@ -32,6 +39,15 @@ public class LhtrpcDemoProviderApplication {
 
     @Autowired
     private SpringBootTransport springBootTransport;
+
+    @Autowired
+    private ProviderProperties providerProperties;
+
+    @RequestMapping("/metas")
+    public String meta() {
+        System.out.println(System.identityHashCode(providerProperties.getMetas()));
+        return providerProperties.getMetas().toString();
+    }
 
     /**
      * 这块本来想移到core里面，但是它会依赖UserService，是在api里面，所以先只能放在服务端
@@ -48,8 +64,10 @@ public class LhtrpcDemoProviderApplication {
     }
 
     @Bean
-    ApplicationRunner providerRun(){
+    ApplicationRunner providerRun(ApplicationContext context){
         return x->{
+            ConfigurationPropertiesRebinder rebinder = context.getBean(ConfigurationPropertiesRebinder.class);
+            System.out.println(rebinder);
             testAll();
         };
     }

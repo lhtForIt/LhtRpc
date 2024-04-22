@@ -2,9 +2,8 @@ package com.lht.lhtrpc.core.provider;
 
 import com.lht.lhtrpc.core.annotation.LhtProvider;
 import com.lht.lhtrpc.core.api.RegistryCenter;
-import com.lht.lhtrpc.core.api.RpcContext;
 import com.lht.lhtrpc.core.config.AppConfigProperties;
-import com.lht.lhtrpc.core.config.ProviderConfigProperties;
+import com.lht.lhtrpc.core.config.ProviderProperties;
 import com.lht.lhtrpc.core.meta.InstanceMeta;
 import com.lht.lhtrpc.core.meta.ProviderMeta;
 import com.lht.lhtrpc.core.meta.ServiceMeta;
@@ -15,13 +14,11 @@ import jakarta.annotation.PreDestroy;
 import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.util.Arrays;
@@ -48,20 +45,20 @@ public class ProviderBootStrap implements ApplicationContextAware {
 
     private String port;
     private AppConfigProperties appConfigProperties;
-    private ProviderConfigProperties providerConfigProperties;
+    private ProviderProperties providerProperties;
 
 
-    public ProviderBootStrap(String port, AppConfigProperties appConfigProperties, ProviderConfigProperties providerConfigProperties) {
+    public ProviderBootStrap(String port, AppConfigProperties appConfigProperties, ProviderProperties providerProperties) {
         this.port = port;
         this.appConfigProperties = appConfigProperties;
-        this.providerConfigProperties = providerConfigProperties;
+        this.providerProperties = providerProperties;
     }
 
     @PostConstruct
     public void init() throws ClassNotFoundException {
 //        Map<String, Object> providers = applicationContext.getBeansWithAnnotation(LhtProvider.class);
         Map<String, Object> providers = new HashMap<>();
-        List<Class<?>> provids = PackageScanUtils.doScan(providerConfigProperties.getPackages(), LhtProvider.class);
+        List<Class<?>> provids = PackageScanUtils.doScan(providerProperties.getPackages(), LhtProvider.class);
         //这里还是使用了@Component注解放到spring容器里，如果想要用一个注解自动将这些bean放到容器，可以自己把类拿到，然后自己动态注册到容器里
         //注意如果要自己手动注册到spring容器里，代码就不能写在这里，需要在Bean还没有实例化之前就注册到容器里，需要实现ImportBeanDefinitionRegistrar，
         //并将扫描代码放到那里面去
@@ -79,7 +76,7 @@ public class ProviderBootStrap implements ApplicationContextAware {
     public void start() {
         String ip = InetAddress.getLocalHost().getHostAddress();
         instance = InstanceMeta.http(ip, Integer.parseInt(this.port));
-        instance.getParameters().putAll(providerConfigProperties.getMetas());
+        instance.getParameters().putAll(providerProperties.getMetas());
         rc.start();
         skeleton.keySet().forEach(this::registerService);
     }

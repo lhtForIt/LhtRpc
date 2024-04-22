@@ -45,11 +45,11 @@ public class LhtInvocationHandler implements InvocationHandler {
         this.service = service;
         this.context = context;
         this.providers = providers;
-        int readTimeout = Integer.parseInt(context.getParamerters().getOrDefault("app.okhttp.readTimeout", "1000"));
-        int writeTimeout = Integer.parseInt(context.getParamerters().getOrDefault("app.okhttp.writeTimeout", "1000"));
-        int connectTimeout = Integer.parseInt(context.getParamerters().getOrDefault("app.okhttp.connectTimeout", "1000"));
-        int halfOpenInitialDelay = Integer.parseInt(context.getParamerters().getOrDefault("consumer.halfOpenInitialDelay", "10000"));
-        int halfOpenDelay = Integer.parseInt(context.getParamerters().getOrDefault("consumer.halfOpenDelay", "60000"));
+        int readTimeout = context.getConsumerProperties().getOkhttp().getReadTimeout();
+        int writeTimeout = context.getConsumerProperties().getOkhttp().getWriteTimeout();
+        int connectTimeout = context.getConsumerProperties().getOkhttp().getConnectTimeout();
+        int halfOpenInitialDelay = context.getConsumerProperties().getHalfOpenInitialDelay();
+        int halfOpenDelay = context.getConsumerProperties().getHalfOpenDelay();
         this.httpInvoker = new OkHttpInvoker(readTimeout, writeTimeout, connectTimeout);
         executor = Executors.newScheduledThreadPool(1);
         executor.scheduleWithFixedDelay(this::halfOpen, halfOpenInitialDelay, halfOpenDelay, TimeUnit.SECONDS);
@@ -77,8 +77,8 @@ public class LhtInvocationHandler implements InvocationHandler {
 
 
         //超时重试，没配置默认不重试
-        int retries = Integer.parseInt(context.getParamerters().getOrDefault("consumer.retry", "1"));
-        int faultLimit = Integer.parseInt(context.getParamerters().getOrDefault("consumer.faultLimit", "10"));
+        int retries = context.getConsumerProperties().getRetry();
+        int faultLimit = context.getConsumerProperties().getFaultLimit();
 
         while (retries-- > 0) {
 
@@ -176,11 +176,9 @@ public class LhtInvocationHandler implements InvocationHandler {
 
     @Nullable
     private static Object castToResult(Method method, RpcResponse rpcResponse) throws Exception {
-        //这里如果不转，返回的其实是一个jsonObject对象，但是服务端调用返回的需要是具体的对象，所以需要进行转换(序列化和反序列化？)
         if (rpcResponse.isStatus()) {
             return TypeUtils.buildResponse(method, rpcResponse);
         } else {
-            //异常不能直接返回，会类转换失败，直接抛出去就好，抛的时候可以控制，是所有堆栈信息都返回去，还是只返回主要信息，这里只返回主要信息
             RpcException exception = rpcResponse.getEx();
             if (exception != null) {
                 log.debug("response error {}", exception);

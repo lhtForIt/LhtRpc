@@ -10,6 +10,9 @@ GET http://localhost:8088/gray?grayRatio=0
 ###调用
 GET http://localhost:8088/api?id=100
 
+###查看元数据配置
+GET http://localhost:8081/metas
+
 ###
 POST http://localhost:8081/
 Content-Type: application/json

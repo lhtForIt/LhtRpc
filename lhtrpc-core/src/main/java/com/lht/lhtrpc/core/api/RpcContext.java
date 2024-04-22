@@ -1,5 +1,6 @@
 package com.lht.lhtrpc.core.api;
 
+import com.lht.lhtrpc.core.config.ConsumerProperties;
 import com.lht.lhtrpc.core.meta.InstanceMeta;
 import lombok.Data;
 
@@ -24,6 +25,8 @@ public class RpcContext {
     private List<Filter> filters;
     //动态传参，玩花活
     private Map<String, String> paramerters = new HashMap<>();
+
+    private ConsumerProperties consumerProperties;
     // kkrpc.color = gray
     // kkrpc.gtrace_id
     // gw -> service1 ->  service2(跨线程传递) ...

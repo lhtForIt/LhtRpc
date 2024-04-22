@@ -1,7 +1,6 @@
 package com.lht.lhtrpc.core.config;
 
 import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -14,12 +13,12 @@ import org.springframework.stereotype.Component;
 @Data
 @Component
 @ConfigurationProperties("lhtrpc.consumer")
-public class ConsumerConfigProperties {
+public class ConsumerProperties {
 
     //consumer
-    private int grayRatio;
+    private int grayRatio = 0;
 
-    private String retry;
+    private int retry = 1;
 
     private OkHttpConfig okhttp;
 

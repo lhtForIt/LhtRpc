@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -21,7 +22,7 @@ import org.springframework.core.annotation.Order;
  */
 @Configuration
 @Slf4j
-@Import({AppConfigProperties.class, ProviderConfigProperties.class, ZkConfigProperties.class, SpringBootTransport.class})
+@Import({AppConfigProperties.class, ProviderProperties.class, ZkConfigProperties.class, SpringBootTransport.class})
 public class ProviderConfig {
 
 
@@ -32,16 +33,23 @@ public class ProviderConfig {
     private AppConfigProperties appConfigProperties;
 
     @Autowired
-    private ProviderConfigProperties providerConfigProperties;
+    private ProviderProperties providerProperties;
 
     @Autowired
     private ZkConfigProperties zkConfigProperties;
 
     @Bean
     public ProviderBootStrap providerBootStrap() {
-        return new ProviderBootStrap(port, appConfigProperties, providerConfigProperties);
+        return new ProviderBootStrap(port, appConfigProperties, providerProperties);
     }
 
+
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(prefix = "apollo.bootstrap", value = "enabled")
+    ApolloChangedListener provider_apolloChangedListener() {
+        return new ApolloChangedListener();
+    }
 
     @Bean
     public ProviderInvoker providerInvoker(ProviderBootStrap providerBootStrap) {

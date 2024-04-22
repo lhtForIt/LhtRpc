@@ -9,8 +9,8 @@ import lombok.Data;
 @Data
 public class OkHttpConfig {
 
-    private String connectTimeout;
-    private String readTimeout;
-    private String writeTimeout;
+    private int connectTimeout = 1000;
+    private int readTimeout = 1000;
+    private int writeTimeout = 1000;
 
 }

@@ -14,9 +14,9 @@ import java.util.Map;
  * @date 2024/04/08
  */
 @Data
-@Component
+//@Component
 @ConfigurationProperties("lhtrpc.provider")
-public class ProviderConfigProperties {
+public class ProviderProperties {
 
     //provider
     private Map<String, String> metas = new HashMap<>();
