@@ -17,6 +17,9 @@ lhtrpc:
     namespace: public
     env: dev
 
+lhtregistry:
+  servers: http://localhost:8084
+
 logging:
   level:
     root: error
