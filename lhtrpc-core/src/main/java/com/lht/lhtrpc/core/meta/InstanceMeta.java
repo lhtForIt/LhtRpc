@@ -1,10 +1,7 @@
 package com.lht.lhtrpc.core.meta;
 
 import com.alibaba.fastjson.JSON;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
@@ -19,6 +16,7 @@ import java.util.Map;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(of = {"scheme", "host", "port", "context"})
 public class InstanceMeta {
 
     private String scheme;

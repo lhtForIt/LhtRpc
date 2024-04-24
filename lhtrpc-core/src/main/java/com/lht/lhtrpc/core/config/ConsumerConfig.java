@@ -6,6 +6,7 @@ import com.lht.lhtrpc.core.cluster.GrayRouter;
 import com.lht.lhtrpc.core.cluster.RandomRibonLoadBalancer;
 import com.lht.lhtrpc.core.consumer.ConsumerBootStrap;
 import com.lht.lhtrpc.core.filter.ParameterFilter;
+import com.lht.lhtrpc.core.registry.lht.LhtRegistryCenter;
 import com.lht.lhtrpc.core.registry.zk.ZkRegistryCenter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,10 +93,16 @@ public class ConsumerConfig {
 
 
     //注册中心自动启动和销毁通过initMethod和destroyMethod
+//    @Bean(initMethod = "start", destroyMethod = "stop")
+//    @ConditionalOnMissingBean
+//    public RegistryCenter registryCenterConsumer() {
+//        return new ZkRegistryCenter(zkConfigProperties.getZkServer(), zkConfigProperties.getZkRoot());
+//    }
+
     @Bean(initMethod = "start", destroyMethod = "stop")
     @ConditionalOnMissingBean
-    public RegistryCenter registryCenterConsumer() {
-        return new ZkRegistryCenter(zkConfigProperties.getZkServer(), zkConfigProperties.getZkRoot());
+    public RegistryCenter registryCenterProvider() {
+        return new LhtRegistryCenter();
     }
 
     @Bean

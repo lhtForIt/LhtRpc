@@ -33,4 +33,8 @@ Content-Type: application/json
   "args": [200]
 }
 
+### 注册服务
+POST http://localhost:8084/register?server=lht-app_public_dev_com.lht.lhtrpc.demo.api.OrderService
+Content-Type: application/json
 
+{"context":"lhtrpc","host":"192.168.3.55","parameters":{"unit":"C001","gray":"false","dc":"sh","tc":"10"},"port":8081,"scheme":"http","status":false}

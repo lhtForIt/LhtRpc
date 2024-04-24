@@ -33,11 +33,10 @@ public class OkHttpInvoker implements HttpInvoker {
 
     @Override
     public String post(String requestString,String url) {
-        log.debug(" ===> post  url = {}, requestString = {}", requestString, url);
-        String requestJson = JSON.toJSONString(requestString);
+        log.debug(" ===> post  url = {}, requestString = {}", url, requestString);
         Request request = new Request.Builder()
                 .url(url)
-                .post(RequestBody.create(requestJson, MEDIA_TYPE))
+                .post(RequestBody.create(requestString, MEDIA_TYPE))
                 .build();
         try {
             String responseJson = client.newCall(request).execute().body().string();

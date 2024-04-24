@@ -3,6 +3,7 @@ package com.lht.lhtrpc.core.config;
 import com.lht.lhtrpc.core.api.RegistryCenter;
 import com.lht.lhtrpc.core.provider.ProviderBootStrap;
 import com.lht.lhtrpc.core.provider.ProviderInvoker;
+import com.lht.lhtrpc.core.registry.lht.LhtRegistryCenter;
 import com.lht.lhtrpc.core.registry.zk.ZkRegistryCenter;
 import com.lht.lhtrpc.core.transport.SpringBootTransport;
 import lombok.extern.slf4j.Slf4j;
@@ -59,10 +60,16 @@ public class ProviderConfig {
     /**
      * 在服务提供者启动和关闭时调用注册中心的启动和关闭方法，这样让两者联系起来，而不是各干各的
      */
-    @Bean //(initMethod = "start", destroyMethod = "stop")
+//    @Bean //(initMethod = "start", destroyMethod = "stop")
+//    @ConditionalOnMissingBean
+//    public RegistryCenter registryCenterProvider() {
+//        return new ZkRegistryCenter(zkConfigProperties.getZkServer(), zkConfigProperties.getZkRoot());
+//    }
+
+    @Bean
     @ConditionalOnMissingBean
     public RegistryCenter registryCenterProvider() {
-        return new ZkRegistryCenter(zkConfigProperties.getZkServer(), zkConfigProperties.getZkRoot());
+        return new LhtRegistryCenter();
     }
 
     @Bean

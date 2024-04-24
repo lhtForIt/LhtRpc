@@ -43,7 +43,7 @@ public interface HttpInvoker {
 
     @SneakyThrows
     static <T> T httpPost(String requestString,String url, Class<T> clazz) {
-        log.debug(" =====>>>>>> httpGet: " + url);
+        log.debug(" =====>>>>>> httpPost: " + url);
         String respJson = Default.post(requestString, url);
         log.debug(" =====>>>>>> response: " + respJson);
         return JSON.parseObject(respJson, clazz);

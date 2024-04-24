@@ -24,7 +24,7 @@ logging:
   level:
     root: error
     com.lht.lhtrpc: debug
-    com.ctrip: debug
+    com.ctrip: error
 
 app:
   id: leoApp

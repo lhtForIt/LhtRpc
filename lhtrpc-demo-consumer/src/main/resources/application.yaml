@@ -17,11 +17,14 @@ lhtrpc:
       readTimeout: 1000
       writeTimeout: 1000
 
+lhtregistry:
+  servers: http://localhost:8084
+
 logging:
   level:
     root: error
     com.lht.lhtrpc: debug
-    com.ctrip: debug
+    com.ctrip: error
 
 
 app:
