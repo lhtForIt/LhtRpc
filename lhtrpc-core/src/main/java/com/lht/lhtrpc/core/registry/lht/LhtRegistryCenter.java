@@ -35,43 +35,28 @@ public class LhtRegistryCenter implements RegistryCenter {
     Map<String, Long> VERSIONS = new HashMap<>();
 
     MultiValueMap<InstanceMeta, String> RENEWS = new LinkedMultiValueMap<>();
-    ScheduledExecutorService consumerExecutor;
-    ScheduledExecutorService providerExecutor;
 
+    LhtHealthChecker healthChecker = new LhtHealthChecker();
     @Override
     public void start() {
         log.info(" ====>>> [lhtRegistry]: start with server: {}", servers);
-        consumerExecutor = Executors.newScheduledThreadPool(1);
-        providerExecutor = Executors.newScheduledThreadPool(1);
-        providerExecutor.scheduleWithFixedDelay(()->{
+        healthChecker.start();
+        healthChecker.providerCheck(()->{
             RENEWS.forEach((k, v) -> {
                 String services = v.stream().collect(Collectors.joining(","));
                 Long time = HttpInvoker.httpPost(JSON.toJSONString(k), servers + "/renews?services=" + services, Long.class);
                 log.debug(" ====>>> [lhtRegistry]: renew instance {} server {} for renew with time {}", k, services, time);
             });
-        },5,5, TimeUnit.SECONDS);
-
+        });
     }
 
     @Override
     public void stop() {
         log.info(" ====>>> [lhtRegistry]: stop with server: {}", servers);
-        gracefulShutdown(consumerExecutor);
-        gracefulShutdown(providerExecutor);
+        healthChecker.stop();
     }
 
-    private void gracefulShutdown(ScheduledExecutorService executorService) {
-        executorService.shutdown();
-        //优雅停止
-        try {
-            executorService.awaitTermination(1, TimeUnit.SECONDS);
-            if (!executorService.isTerminated()) {
-                executorService.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            //do nothing
-        }
-    }
+
 
     @Override
     public void register(ServiceMeta service, InstanceMeta instance) {
@@ -99,7 +84,7 @@ public class LhtRegistryCenter implements RegistryCenter {
 
     @Override
     public void subscribe(ServiceMeta service, ChangedListener listener) {
-        consumerExecutor.scheduleWithFixedDelay(() -> {
+        healthChecker.consumerCheck(() -> {
             long version = VERSIONS.getOrDefault(service.toPath(), -1L);
             Long serverVersion = HttpInvoker.httpGet(servers + "/version?service=" + service.toPath(), Long.class);
             log.info(" ====>>> [lhtRegistry]: version = {}, serverVersion = {}", version, serverVersion);
@@ -108,6 +93,6 @@ public class LhtRegistryCenter implements RegistryCenter {
                 listener.fire(new Event(instanceMetas));
                 VERSIONS.put(service.toPath(), serverVersion);
             }
-        }, 1, 5, TimeUnit.SECONDS);
+        });
     }
 }

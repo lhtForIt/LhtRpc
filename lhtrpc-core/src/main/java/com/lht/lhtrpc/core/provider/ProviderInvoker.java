@@ -64,6 +64,9 @@ public class ProviderInvoker {
         } catch (IllegalAccessException e) {
             e.printStackTrace();
             rpcResponse.setEx(new RpcException(e.getMessage()));
+        } catch (RpcException e) {
+            e.printStackTrace();
+            rpcResponse.setEx(e);
         }
         return rpcResponse;
     }
