@@ -1,6 +1,7 @@
 package com.lht.lhtrpc.demo.provider;
 
 import com.ctrip.framework.apollo.spring.annotation.EnableApolloConfig;
+import com.lht.lhtconfig.client.annotation.EnableLhtConfig;
 import com.lht.lhtrpc.core.api.RpcException;
 import com.lht.lhtrpc.core.api.RpcRequest;
 import com.lht.lhtrpc.core.api.RpcResponse;
@@ -25,7 +26,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 @SpringBootApplication
 @RestController
-@EnableApolloConfig
+//@EnableApolloConfig
+@EnableLhtConfig
 @Import({ProviderConfig.class})
 public class LhtrpcDemoProviderApplication {
 

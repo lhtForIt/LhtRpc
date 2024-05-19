@@ -23,7 +23,8 @@ lhtregistry:
 logging:
   level:
     root: error
-    com.lht.lhtrpc: debug
+    com.lht.lhtrpc: info
+    com.lht.lhtconfig: debug
     com.ctrip: error
 
 app:

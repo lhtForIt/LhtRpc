@@ -44,12 +44,12 @@ public class ConsumerConfig {
         return new ConsumerBootStrap();
     }
 
-    @Bean
-    @ConditionalOnMissingBean
-    @ConditionalOnProperty(prefix = "apollo.bootstrap", value = "enabled")
-    ApolloChangedListener consumer_apolloChangedListener() {
-        return new ApolloChangedListener();
-    }
+//    @Bean
+//    @ConditionalOnMissingBean
+//    @ConditionalOnProperty(prefix = "apollo.bootstrap", value = "enabled")
+//    ApolloChangedListener consumer_apolloChangedListener() {
+//        return new ApolloChangedListener();
+//    }
 
     /**
      * applicationRunner在所有bean都生成并初始化完成之后才会调用，这时候去初始化消费者

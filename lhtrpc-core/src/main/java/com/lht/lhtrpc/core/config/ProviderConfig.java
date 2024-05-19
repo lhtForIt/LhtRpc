@@ -45,12 +45,12 @@ public class ProviderConfig {
     }
 
 
-    @Bean
-    @ConditionalOnMissingBean
-    @ConditionalOnProperty(prefix = "apollo.bootstrap", value = "enabled")
-    ApolloChangedListener provider_apolloChangedListener() {
-        return new ApolloChangedListener();
-    }
+//    @Bean
+//    @ConditionalOnMissingBean
+//    @ConditionalOnProperty(prefix = "apollo.bootstrap", value = "enabled")
+//    ApolloChangedListener provider_apolloChangedListener() {
+//        return new ApolloChangedListener();
+//    }
 
     @Bean
     public ProviderInvoker providerInvoker(ProviderBootStrap providerBootStrap) {
