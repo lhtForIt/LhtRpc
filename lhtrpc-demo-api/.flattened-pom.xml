@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.github.lhtforit</groupId>
   <artifactId>lhtrpc-demo-api</artifactId>
-  <version>0.0.1</version>
+  <version>0.0.2</version>
   <name>lhtrpc-demo-api</name>
   <description>lhtrpc-demo-api</description>
   <url>https://github.com/lhtForIt/LhtRpc/lhtrpc-demo-api</url>

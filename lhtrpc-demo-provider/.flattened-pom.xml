@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.github.lhtforit</groupId>
   <artifactId>lhtrpc-demo-provider</artifactId>
-  <version>0.0.1</version>
+  <version>0.0.2</version>
   <name>lhtrpc-demo-provider</name>
   <description>lhtrpc-demo-provider</description>
   <url>https://github.com/lhtForIt/LhtRpc/lhtrpc-demo-provider</url>
@@ -45,7 +45,7 @@
     <dependency>
       <groupId>io.github.lhtforit</groupId>
       <artifactId>lhtrpc-demo-api</artifactId>
-      <version>0.0.1</version>
+      <version>0.0.2</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
@@ -64,7 +64,7 @@
     <dependency>
       <groupId>io.github.lhtforit</groupId>
       <artifactId>lhtrpc-core</artifactId>
-      <version>0.0.1</version>
+      <version>0.0.2</version>
       <scope>compile</scope>
     </dependency>
   </dependencies>

@@ -57,11 +57,11 @@
         </dependency>
 
         <!--apollo刷新配置相关-->
-<!--        <dependency>-->
-<!--            <groupId>com.ctrip.framework.apollo</groupId>-->
-<!--            <artifactId>apollo-client</artifactId>-->
-<!--            <version>2.2.0</version>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>com.ctrip.framework.apollo</groupId>
+            <artifactId>apollo-client</artifactId>
+            <version>2.2.0</version>
+        </dependency>
 
         <!--集成自定义配置中心-->
         <dependency>
